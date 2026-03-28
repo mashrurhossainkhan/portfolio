@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A blog by Mashrur Hossain Khan on learning Bash scripting for remote execution, SSH key-based login, and multi-server deployment automation."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Bash Scripting Learnings | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        padding-top: 7rem;
+        padding-bottom: 3rem;
+      }
+
+      .blog-content {
+        padding-bottom: 5rem;
+      }
+
+      .blog-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .blog-content h2,
+      .blog-content h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-meta {
+        font-size: 0.95rem;
+        color: #909090;
+        margin-bottom: 1.5rem;
+      }
+
+      .blog-note {
+        background: #f8f9fc;
+        border-left: 4px solid #474559;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-code {
+        background: #111827;
+        color: #f9fafb;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        overflow-x: auto;
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .blog-code code {
+        color: inherit;
+        white-space: pre;
+      }
+
+      .back-link {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .blog-tag {
+        display: inline-block;
+        margin-right: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
+        background: #f1f3f9;
+        color: #474559;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- MENU -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link">
+                <span data-hover="About">About</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link">
+                <span data-hover="Projects">Projects</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link">
+                <span data-hover="Blogs">Blogs</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#resume" class="nav-link">
+                <span data-hover="Resume">Resume</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link">
+                <span data-hover="Contact">Contact</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- BLOG HERO -->
+    <section class="blog-hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 col-12 text-center">
+            <h1 class="mb-3">
+              Bash Scripting: Remote Execution, SSH Keys, and Multi-Server Web
+              Deployment
+            </h1>
+
+            <p class="blog-meta">
+              By Mashrur Hossain Khan · DevOps Learning Notes
+            </p>
+
+            <div class="mb-3">
+              <span class="blog-tag">Bash</span>
+              <span class="blog-tag">SSH</span>
+              <span class="blog-tag">Linux</span>
+              <span class="blog-tag">Automation</span>
+              <span class="blog-tag">DevOps</span>
+            </div>
+
+            <a href="index.html#blogs" class="back-link">← Back to Blogs</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 col-12">
+            <div class="blog-card">
+              <p>
+                Writing scripts on a single machine to controlling multiple
+                servers from one central machine. That was the point where Bash
+                started feeling less like a beginner topic and more like real
+                DevOps work.
+              </p>
+
+              <p>
+                The setup had one main machine called <strong>scriptbox</strong>
+                and three target machines:
+                <strong>web01</strong>, <strong>web02</strong>, and
+                <strong>web03</strong>. The first two were CentOS-based and the
+                third one was Ubuntu. The goal was to access them from
+                scriptbox, solve the password problem, and finally automate web
+                server deployment across all of them.
+              </p>
+
+              <h2>Starting from scriptbox to web01, web02, and web03</h2>
+
+              <p>
+                The first important idea was that scriptbox acted as the control
+                machine. Instead of manually logging into every server one by
+                one, I could execute commands remotely from scriptbox using SSH.
+                Hostname mapping was added so the machines could be accessed by
+                names like <code>web01</code> and <code>web03</code> rather than
+                raw IP addresses
+              </p>
+
+              <div class="blog-code"><code>ssh vagrant@web01</code></div>
+
+              <p>
+                That worked, but there was a problem: it kept asking for a
+                password. For quick testing that is fine, but for automation it
+                becomes a blocker. If a script pauses every time and waits for a
+                password, it is no longer true automation.
+              </p>
+
+              <h2>The password issue</h2>
+
+              <p>
+                When the remote command was executed from scriptbox, the command
+                itself worked, but authentication still needed manual input. The
+                same pattern appeared when trying to move files with
+                <code>scp</code> or run commands with <code>ssh</code> remotely.
+                This exposed a basic truth: remote execution only becomes
+                scalable when authentication is non-interactive
+              </p>
+
+              <div class="blog-code"><code>ssh devops@web01 uptime</code></div>
+
+              <p>
+                Another interesting issue appeared with <strong>web03</strong>,
+                which was Ubuntu-based. It was not allowing password login in
+                the same way as the other machines. The reason turned out to be
+                the SSH server configuration. In
+                <code>/etc/ssh/sshd_config</code>, password authentication was
+                disabled, so it needed to be enabled before password-based login
+                could even be tested from scriptbox
+              </p>
+
+              <div class="blog-note">
+                When SSH says something like public key only or permission
+                denied, the issue may not be the username or password first. It
+                may simply be SSH server configuration.
+              </div>
+
+              <h2>Creating a proper automation user</h2>
+
+              <p>
+                Instead of continuing with the default Vagrant user, a separate
+                user called <strong>devops</strong> was created on the remote
+                machines. That user was then added to sudoers with
+                <code>NOPASSWD</code> so system-level actions such as installing
+                packages and starting services could be executed without
+                interactive prompts
+              </p>
+
+              <p>
+                This felt like a more realistic setup. In real environments,
+                automation usually should not depend on a default user account.
+                It is better to create a dedicated account with just enough
+                permissions to perform the required actions.
+              </p>
+
+              <h2>From password-based SSH to key-based SSH</h2>
+
+              <p>
+                The real improvement came with SSH key-based authentication.
+                Instead of entering a password again and again, a key pair was
+                generated with <code>ssh-keygen</code>. Then the public key was
+                copied to each remote machine with <code>ssh-copy-id</code>.
+              </p>
+
+              <div class="blog-code">
+                <code
+                  >ssh-keygen ssh-copy-id devops@web01 ssh-copy-id devops@web02
+                  ssh-copy-id devops@web03</code
+                >
+              </div>
+
+              <p>
+                After that, remote commands could run without asking for a
+                password. This was the turning point. Once SSH stopped being
+                interactive, Bash loops and remote execution became truly
+                useful.
+              </p>
+
+              <p>
+                That also helped me understand the practical difference between
+                a public key and a private key. The public key is placed on the
+                remote server, and the private key stays on the control machine.
+                If they match, authentication succeeds. It is cleaner, faster,
+                and safer than repeatedly typing passwords.
+              </p>
+
+              <h2>Using a loop to target multiple servers</h2>
+
+              <p>
+                The next big step was creating a host file that listed all
+                target machines. Then a loop could go through each host one by
+                one and run commands remotely. This made the script feel like a
+                lightweight orchestration system
+              </p>
+
+              <div class="blog-code">
+                <code
+                  >for host in $(cat remote_hosts) do ssh devops@$host hostname
+                  done</code
+                >
+              </div>
+
+              <p>
+                A single loop can target 3 machines, 30 machines, or even
+                hundreds, depending on what is listed in the inventory file.
+              </p>
+
+              <h2>The CentOS vs Ubuntu difference</h2>
+
+              <p>
+                When trying package installation remotely, another useful
+                problem appeared. The same command did not work everywhere.
+                CentOS-based machines accepted <code>yum</code>, while Ubuntu
+                required <code>apt</code>. So the script had to detect the
+                operating system and decide which commands, package names, and
+                service names to use
+              </p>
+
+              <p>
+                That taught me an important DevOps lesson: automation is not
+                just about sending commands remotely. It is also about making
+                scripts smart enough to handle differences between environments.
+              </p>
+
+              <h2>Pushing and executing the deployment script</h2>
+
+              <p>
+                The final step was putting it all together. Instead of just
+                executing one-liner commands, the deployment script itself was
+                copied to each machine using <code>scp</code>, executed remotely
+                with <code>ssh</code>, and then cleaned up from the remote
+                machine afterward
+              </p>
+
+              <div class="blog-code">
+                <code
+                  >scp multios_websetup.sh devops@$host:/tmp/ ssh devops@$host
+                  "sudo /tmp/multios_websetup.sh" ssh devops@$host "rm -f
+                  /tmp/multios_websetup.sh"</code
+                >
+              </div>
+
+              <p>
+                That script handled the web server setup differently depending
+                on the OS. On CentOS, it used the right package and service
+                names for Apache. On Ubuntu, it switched to the Ubuntu
+                equivalents. The result was that <strong>web01</strong>,
+                <strong>web02</strong>, and <strong>web03</strong> all got web
+                setup completed from a single control point
+              </p>
+
+              <h2>Why I think this matters</h2>
+
+              <p>
+                What I liked most about this section is that it shows how tools
+                like Ansible do not come out of nowhere. Behind the nicer syntax
+                and abstraction, the core ideas are still here: inventory,
+                remote execution, authentication, OS-aware logic, file transfer,
+                and command orchestration.
+              </p>
+
+              <p>
+                Learning this gave me more confidence. It made me feel that if I
+                can understand and build this flow manually, then I will be in a
+                much better position to learn more advanced DevOps tools the
+                right way.
+              </p>
+
+              <div class="blog-note">
+                For me, this was the moment Bash stopped being “just scripting”
+                and started feeling like the base layer of automation.
+              </div>
+
+              <a
+                href="index.html#blogs"
+                class="btn custom-btn custom-btn-bg custom-btn-link mt-4"
+              >
+                Back to Blogs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-12">
+            <p class="copyright-text text-center">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+            <p class="copyright-text text-center">
+              Built with the existing portfolio template structure and
+              customised for Mashrur's blog.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

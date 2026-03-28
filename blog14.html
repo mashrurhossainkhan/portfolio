@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on AWS S3 lifecycle rules, versioning, replication, disaster recovery, and cost optimization from a DevOps learning perspective."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>
+      AWS S3 Lifecycle, Versioning, and Replication | Mashrur Hossain Khan
+    </title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- MENU -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- BLOG HEADER -->
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>AWS S3 Lifecycle, Versioning, and Replication</h1>
+            <p>
+              A practical look at how S3 helps with cost optimization, disaster
+              recovery, and data management through lifecycle rules, versioning,
+              and cross-region replication.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              When people first learn Amazon S3, it often looks like a simple
+              cloud storage service where you upload files and access them
+              later. But once I started going deeper, I realized S3 is much more
+              than just file storage. It also gives powerful features for cost
+              control, recovery, long-term retention, and disaster recovery.
+            </p>
+
+            <p>
+              In this blog, I want to explain three important S3 features that
+              are very useful in real projects and very relevant for DevOps
+              work:
+            </p>
+
+            <ul>
+              <li>Lifecycle rules</li>
+              <li>Versioning</li>
+              <li>Replication</li>
+            </ul>
+
+            <h2>Why These Features Matter</h2>
+            <p>
+              In real systems, data does not stay equally important forever.
+              Some files are accessed frequently in the beginning, but later
+              they become old and are rarely used. Some files must be kept for
+              audit or compliance reasons. Some critical data must also be
+              available in another region in case of disaster.
+            </p>
+
+            <p>
+              That is where these S3 features become very practical. They help
+              reduce cost and improve resilience without requiring manual
+              handling every day.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Simple idea:</strong> store important data smartly, move
+              old data to cheaper storage, and keep backup copies where needed.
+            </div>
+
+            <h2>1. Lifecycle Rules</h2>
+            <p>
+              Lifecycle rules allow us to automatically move objects from one
+              storage class to another based on age. This is mainly used for
+              cost optimization.
+            </p>
+
+            <p>
+              Suppose a file is uploaded today. At first, it may need fast
+              access, so storing it in S3 Standard makes sense. But after 30,
+              60, or 90 days, if nobody is using it often, keeping it in the
+              same expensive storage class may not be necessary.
+            </p>
+
+            <p>
+              With lifecycle rules, AWS can automatically transition it to a
+              cheaper storage class.
+            </p>
+
+            <div class="code-block">
+              Day 0 → S3 Standard Day 30 → S3 Standard-IA Day 60 → S3 One
+              Zone-IA Day 90 → Glacier Flexible Retrieval Day 180 → Glacier Deep
+              Archive Day 450 → Expire/Delete
+            </div>
+
+            <p>
+              This is very useful for logs, backups, archived documents, and old
+              application files. Instead of remembering to clean things up
+              manually, the bucket can manage this automatically.
+            </p>
+
+            <h3>Why This Helps</h3>
+            <ul>
+              <li>Reduces long-term storage cost</li>
+              <li>Prevents unnecessary spending on rarely used files</li>
+              <li>Automates retention and cleanup</li>
+            </ul>
+
+            <h3>Important Detail for Versioned Buckets</h3>
+            <p>
+              One important thing I learned is that if bucket versioning is
+              enabled, lifecycle rules should not be applied only to current
+              objects. Non-current versions also take storage and therefore also
+              create cost.
+            </p>
+
+            <p>
+              So in a versioned bucket, a proper lifecycle strategy should
+              usually include:
+            </p>
+
+            <ul>
+              <li>Current object transitions</li>
+              <li>Non-current version transitions</li>
+              <li>Expiration of old versions if required</li>
+            </ul>
+
+            <h2>2. Versioning</h2>
+            <p>
+              Versioning is one of the most useful S3 features for data
+              recovery. When enabled, S3 keeps different versions of the same
+              object instead of simply replacing or permanently removing data.
+            </p>
+
+            <p>This means:</p>
+
+            <ul>
+              <li>If a file is overwritten, the older version still exists</li>
+              <li>
+                If a file is deleted, S3 places a delete marker instead of
+                removing the actual data immediately
+              </li>
+            </ul>
+
+            <p>This makes rollback and recovery much easier.</p>
+
+            <h3>Simple Example</h3>
+            <p>
+              Let’s say you upload <strong>index.html</strong> to host a static
+              website on S3. Later, you upload a new version and accidentally
+              break the website.
+            </p>
+
+            <p>
+              If versioning is enabled, the previous working version is still
+              there. You can remove the latest bad version and restore the site
+              quickly.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Good use case:</strong> versioning is very helpful when
+              files may be changed, deleted by mistake, or need recovery later.
+            </div>
+
+            <h3>Important Caution</h3>
+            <p>
+              Versioning is useful, but it also increases storage usage. If the
+              same objects are overwritten frequently, multiple versions will be
+              stored and the total bucket size can grow quickly.
+            </p>
+
+            <p>
+              So versioning gives protection, but it should be used with proper
+              lifecycle planning if cost matters.
+            </p>
+
+            <h2>3. Replication</h2>
+            <p>
+              Replication is one of the most important features for disaster
+              recovery and compliance. It allows objects from one S3 bucket to
+              be copied automatically to another bucket, usually in a different
+              region.
+            </p>
+
+            <p>
+              This helps protect important data in case of regional issues,
+              compliance requirements, or recovery planning.
+            </p>
+
+            <div class="code-block">
+              Primary Bucket (Sydney) → Replica Bucket (Oregon)
+            </div>
+
+            <p>
+              In real environments, this kind of setup is useful for critical
+              logs, application uploads, business documents, backup data, and
+              regulated records.
+            </p>
+
+            <h3>Why Use Replication?</h3>
+            <ul>
+              <li>Supports disaster recovery planning</li>
+              <li>Keeps data available in another region</li>
+              <li>Helps with compliance requirements</li>
+              <li>Improves resilience for critical data</li>
+            </ul>
+
+            <h3>Things to Know Before Using It</h3>
+            <ul>
+              <li>Versioning must be enabled</li>
+              <li>Destination bucket must exist</li>
+              <li>IAM permissions are needed</li>
+              <li>Replication adds extra cost</li>
+            </ul>
+
+            <p>
+              Also, replication generally applies to new objects after the rule
+              is created. Existing objects do not automatically copy unless you
+              explicitly choose that option.
+            </p>
+
+            <h2>Combining All Three Features</h2>
+            <p>
+              What makes S3 powerful is not just each feature by itself, but how
+              they work together.
+            </p>
+
+            <p>A practical setup may look like this:</p>
+
+            <ul>
+              <li>Versioning enabled for recovery</li>
+              <li>Lifecycle rules enabled for cost optimization</li>
+              <li>Replication enabled for disaster recovery</li>
+            </ul>
+
+            <p>This means:</p>
+
+            <ul>
+              <li>Data is recoverable</li>
+              <li>Old data becomes cheaper over time</li>
+              <li>Critical data is copied to another region</li>
+            </ul>
+
+            <p>
+              This is the kind of thinking that turns simple file storage into a
+              more production-ready design.
+            </p>
+
+            <h2>Real-World Example</h2>
+            <p>
+              Imagine a web application where users upload files. A strong S3
+              design could be:
+            </p>
+
+            <ul>
+              <li>Store uploads in S3 Standard initially</li>
+              <li>
+                Enable versioning for protection from accidental overwrite or
+                delete
+              </li>
+              <li>Move old uploads to cheaper classes using lifecycle rules</li>
+              <li>Replicate critical uploads to another region</li>
+            </ul>
+
+            <p>
+              That gives a good balance of performance, safety, and cost
+              control.
+            </p>
+
+            <h2>What I Learned From This</h2>
+            <p>
+              This part of S3 taught me something important: in cloud systems,
+              storage design is not only about where files live. It is also
+              about:
+            </p>
+
+            <ul>
+              <li>How long data should stay</li>
+              <li>How often data is accessed</li>
+              <li>How much recovery protection is needed</li>
+              <li>What happens during disaster scenarios</li>
+            </ul>
+
+            <p>
+              That is why S3 is such a popular AWS service. It looks simple from
+              outside, but it gives many powerful options for real production
+              needs.
+            </p>
+
+            <h2>Final Thoughts</h2>
+            <p>
+              Learning S3 lifecycle rules, versioning, and replication made me
+              understand that good cloud architecture is not just about making
+              things work. It is also about making them efficient, recoverable,
+              and reliable over time.
+            </p>
+
+            <p>
+              For anyone learning AWS or DevOps, these features are worth
+              practicing hands-on. They show how a basic storage service can be
+              turned into a smarter solution for long-term real-world use.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

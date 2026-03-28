@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical introduction to AWS CLI covering setup, configuration, basic commands, automation value, and security best practices."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Getting Started with AWS CLI | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        background: #f8f9fa;
+        padding: 120px 0 70px;
+      }
+
+      .blog-content {
+        padding: 60px 0 80px;
+      }
+
+      .blog-card {
+        background: #ffffff;
+        border: 1px solid #ececec;
+        border-radius: 18px;
+        padding: 2.5rem;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.05);
+      }
+
+      .blog-content h2,
+      .blog-content h3,
+      .blog-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-content ul {
+        padding-left: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .blog-content pre {
+        background: #111827;
+        color: #f9fafb;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .blog-content code {
+        color: #f9fafb;
+      }
+
+      .blog-content p code,
+      .blog-content li code {
+        background: #f1f3f9;
+        color: #474559;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+      }
+
+      .blog-note {
+        background: #fff6df;
+        border-left: 4px solid #ffc107;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-tip {
+        background: #eef8ff;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .back-link {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .meta-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+
+      blockquote {
+        background: #f8f9fc;
+        border-left: 4px solid #474559;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+        color: #474559;
+        font-weight: 600;
+      }
+
+      @media (max-width: 767.98px) {
+        .blog-hero {
+          padding: 100px 0 50px;
+        }
+
+        .blog-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"
+          ><i class="uil uil-user"></i> Mashrur</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"
+                ><span data-hover="About">About</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span data-hover="Projects">Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#resume" class="nav-link"
+                ><span data-hover="Resume">Resume</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"
+                ><span data-hover="Blogs">Blogs</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span data-hover="Contact">Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 text-center">
+            <a href="index.html#blogs" class="back-link">← Back to Blogs</a>
+            <h1 class="mt-4">Getting Started with AWS CLI</h1>
+            <p class="meta-text mt-3 mb-0">
+              A simple guide to setting up AWS CLI, running your first commands,
+              and understanding why command-line cloud management matters.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9">
+            <div class="blog-card">
+              <p>
+                While learning AWS, I started with the AWS Console (GUI) to
+                understand how services work. But as I went deeper into DevOps,
+                I realized that clicking buttons is not enough. That’s where the
+                AWS CLI (Command Line Interface) comes in.
+              </p>
+
+              <div class="blog-tip">
+                <strong>What changed for me:</strong> AWS CLI made cloud tasks
+                feel repeatable and automatable instead of manual and slow.
+              </div>
+
+              <h2>What is AWS CLI?</h2>
+              <p>
+                AWS CLI allows us to interact with AWS services directly from
+                the terminal. Everything we do in the AWS Console, like
+                launching EC2, creating key pairs, or managing security groups,
+                can also be done using commands.
+              </p>
+
+              <p>
+                Instead of navigating multiple screens, we can automate tasks
+                using simple commands.
+              </p>
+
+              <h2>Why AWS CLI is Important</h2>
+              <ul>
+                <li>Faster than using the browser</li>
+                <li>Essential for automation and scripting</li>
+                <li>Used in CI/CD pipelines</li>
+                <li>Helps manage infrastructure programmatically</li>
+              </ul>
+
+              <h2>Setting Up AWS CLI</h2>
+
+              <h3>Step 1: Install AWS CLI</h3>
+              <p>On Mac:</p>
+              <pre><code>brew install awscli</code></pre>
+
+              <p>On Windows:</p>
+              <pre><code>choco install awscli</code></pre>
+
+              <h3>Step 2: Configure AWS CLI</h3>
+              <p>After installation, we configure it using:</p>
+              <pre><code>aws configure</code></pre>
+
+              <p>This requires:</p>
+              <ul>
+                <li>Access Key</li>
+                <li>Secret Access Key</li>
+                <li>Region, for example <code>us-east-1</code></li>
+                <li>Output format, such as <code>json</code></li>
+              </ul>
+
+              <p>
+                These keys are generated from an IAM user and must be kept
+                secure.
+              </p>
+
+              <h2>Basic Commands I Tried</h2>
+
+              <h3>Check Identity</h3>
+              <pre><code>aws sts get-caller-identity</code></pre>
+
+              <h3>List EC2 Instances</h3>
+              <pre><code>aws ec2 describe-instances</code></pre>
+
+              <p>
+                The output is in JSON format and contains detailed information
+                about the instances.
+              </p>
+
+              <h2>Using AI with AWS CLI</h2>
+              <p>
+                AWS also provides an AI assistant called Amazon Q. It helps
+                generate CLI commands by simply describing what we want.
+              </p>
+
+              <p>For example:</p>
+              <pre><code>Create a key pair using AWS CLI</code></pre>
+
+              <p>
+                It provides the exact command, which makes learning and
+                automation much easier.
+              </p>
+
+              <h2>Important Lesson</h2>
+              <p>One key takeaway for me was:</p>
+
+              <blockquote>
+                Always learn how to do things manually first, then automate
+                using CLI.
+              </blockquote>
+
+              <p>
+                If you don’t understand the service, running commands blindly
+                won’t help.
+              </p>
+
+              <h2>Security Note</h2>
+              <p>
+                AWS access keys must never be shared or uploaded to public
+                repositories. If exposed, someone can misuse your account and
+                generate unexpected costs.
+              </p>
+
+              <div class="blog-note">
+                Treat access keys like passwords. Store them carefully, rotate
+                them when needed, and avoid hardcoding them in projects.
+              </div>
+
+              <h2>Final Thoughts</h2>
+              <p>
+                AWS CLI feels like the bridge between basic cloud usage and real
+                DevOps practices. It allows us to move from manual work to
+                automation, which is a core part of modern cloud engineering.
+              </p>
+
+              <p>
+                For me, learning CLI was not just about commands. It was about
+                understanding how to control infrastructure programmatically.
+              </p>
+
+              <a
+                href="index.html#blogs"
+                class="btn custom-btn custom-btn-bg custom-btn-link mt-4"
+              >
+                Back to Blogs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-12">
+            <p class="copyright-text text-center">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+            <p class="copyright-text text-center">
+              Built with the existing portfolio template structure and
+              customised for Mashrur's blog.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

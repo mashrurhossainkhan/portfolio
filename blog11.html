@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS CloudWatch Monitoring and Alerts (Hands-on)</title>
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --heading: #0f172a;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --border: #e5e7eb;
+        --code-bg: #111827;
+        --code-text: #f9fafb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.8;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        padding: 60px 0 40px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero h1 {
+        font-size: 2.3rem;
+        margin-bottom: 12px;
+        color: var(--heading);
+      }
+
+      .hero p {
+        color: var(--muted);
+        max-width: 700px;
+      }
+
+      .card {
+        background: var(--card);
+        margin: 40px auto;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      h2 {
+        margin-top: 30px;
+        color: var(--heading);
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 15px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+
+      .highlight {
+        background: var(--accent-soft);
+        padding: 15px;
+        border-left: 4px solid var(--accent);
+        margin: 20px 0;
+        border-radius: 8px;
+      }
+
+      .back {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 18px;
+        background: var(--accent);
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>AWS CloudWatch: Monitoring, Metrics & Alerts</h1>
+        <p>
+          A hands-on learning from my AWS journey where I explored how to
+          monitor EC2 instances using CloudWatch, simulate real CPU load, and
+          trigger email alerts using SNS when thresholds are crossed.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="card">
+        <p>
+          After learning how to deploy servers using EC2 and manage traffic
+          using load balancers, the next important step is monitoring. In
+          real-world systems, deployment is only the beginning. The real
+          challenge is knowing when something goes wrong.
+        </p>
+
+        <h2>What is AWS CloudWatch?</h2>
+        <p>
+          CloudWatch is a monitoring service that collects metrics, logs, and
+          events from AWS resources. It automatically tracks performance data
+          such as CPU usage, network activity, and disk operations.
+        </p>
+
+        <div class="highlight">
+          CloudWatch = Monitor + Alert system for your infrastructure
+        </div>
+
+        <h2>Understanding Metrics</h2>
+        <p>
+          Metrics are numerical data points collected over time. For EC2, common
+          metrics include CPU utilization, network traffic, and disk operations.
+        </p>
+
+        <pre>
+CPU Utilization
+Network In / Out
+Disk Read / Write
+        </pre>
+
+        <p>
+          By default, CloudWatch collects data every 5 minutes. If needed,
+          detailed monitoring can be enabled to collect data every minute.
+        </p>
+
+        <h2>Generating Load Using Stress Tool</h2>
+        <p>
+          To simulate real-world conditions, I installed a tool called
+          <strong>stress</strong> on my EC2 instance. This tool artificially
+          increases CPU usage so we can observe how CloudWatch reacts.
+        </p>
+
+        <pre>
+dnf install stress -y
+stress -c 4 -t 60
+        </pre>
+
+        <p>
+          I also created a small script to continuously generate load at random
+          intervals. This helped in creating a realistic CPU usage pattern
+          instead of a constant spike.
+        </p>
+
+        <h2>Watching Metrics in Real Time</h2>
+        <p>
+          After running the stress tool, the CPU utilization graph in CloudWatch
+          started showing spikes. This is normal behavior. In real systems, CPU
+          usage goes up and down depending on workload.
+        </p>
+
+        <div class="highlight">
+          The real problem is not spikes — it is when CPU stays high for a long
+          time.
+        </div>
+
+        <h2>Creating CloudWatch Alarm</h2>
+        <p>
+          Since no one can monitor graphs 24/7, CloudWatch allows setting
+          alarms. I created an alarm with the condition:
+        </p>
+
+        <pre>
+CPU Utilization >= 60% for 1 minute
+        </pre>
+
+        <p>
+          When this condition is met, CloudWatch changes state from OK → ALARM.
+        </p>
+
+        <h2>Integrating with SNS</h2>
+        <p>
+          To receive notifications, I integrated the alarm with SNS (Simple
+          Notification Service). SNS sends email alerts whenever the alarm is
+          triggered.
+        </p>
+
+        <pre>
+EC2 → CloudWatch → Alarm → SNS → Email
+        </pre>
+
+        <p>
+          After confirming my email subscription, I started receiving alerts
+          when CPU usage crossed the threshold.
+        </p>
+
+        <h2>Alarm States</h2>
+        <ul>
+          <li><strong>OK</strong> → everything normal</li>
+          <li><strong>ALARM</strong> → threshold crossed</li>
+          <li><strong>INSUFFICIENT DATA</strong> → not enough data yet</li>
+        </ul>
+
+        <h2>Real DevOps Insight</h2>
+        <p>
+          This lab showed me something important: monitoring is not about
+          watching dashboards — it is about getting notified automatically when
+          something goes wrong.
+        </p>
+
+        <div class="highlight">
+          Good systems don’t wait for humans to check them — they alert humans.
+        </div>
+
+        <h2>What I Learned</h2>
+        <ul>
+          <li>CloudWatch automatically collects metrics</li>
+          <li>Stress testing helps simulate real-world load</li>
+          <li>Alarms detect abnormal behavior</li>
+          <li>SNS sends real-time notifications</li>
+          <li>Monitoring is critical for production systems</li>
+        </ul>
+
+        <h2>Final Thoughts</h2>
+        <p>
+          This was one of the most practical lessons in my AWS journey. It moved
+          me from simply deploying infrastructure to actually operating it.
+          CloudWatch made it clear that real systems must be monitored,
+          measured, and automated.
+        </p>
+
+        <a href="blog.html" class="back">← Back to Blogs</a>
+      </div>
+    </main>
+  </body>
+</html>

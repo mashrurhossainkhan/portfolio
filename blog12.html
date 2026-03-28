@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS EFS vs S3: When and How to Use Each</title>
+
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --heading: #0f172a;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --border: #e5e7eb;
+        --code-bg: #111827;
+        --code-text: #f9fafb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.8;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 920px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 60px 0 40px;
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero h1 {
+        font-size: 2.4rem;
+        margin-bottom: 12px;
+        color: var(--heading);
+      }
+
+      .hero p {
+        color: var(--muted);
+        max-width: 750px;
+      }
+
+      .card {
+        background: var(--card);
+        margin: 40px auto;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+      }
+
+      h2 {
+        margin-top: 32px;
+        color: var(--heading);
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 15px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+
+      .highlight {
+        background: var(--accent-soft);
+        padding: 15px;
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+
+      .back {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 18px;
+        background: var(--accent);
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>AWS EFS vs S3: Storage Design in Real Applications</h1>
+        <p>
+          A practical breakdown of how shared file systems (EFS) and object
+          storage (S3) are used in real-world cloud architecture, including
+          setup steps, use cases, and decision-making strategies.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="card">
+        <p>
+          After learning EC2, EBS, and Load Balancers, the next big challenge is
+          handling files like images, uploads, and static content. At first, it
+          might seem like everything can be stored on the server itself, but in
+          real systems that approach quickly breaks.
+        </p>
+
+        <p>
+          This is where AWS provides two powerful solutions:
+          <strong>EFS (Elastic File System)</strong> and
+          <strong>S3 (Simple Storage Service)</strong>.
+        </p>
+
+        <h2>The Problem: Multiple Servers, One Data Source</h2>
+
+        <pre>
+User → Load Balancer → web-01
+                     → web-02
+        </pre>
+
+        <p>
+          If a user uploads a file to one server, another server may not have
+          that file. This creates inconsistency in a load-balanced setup.
+        </p>
+
+        <div class="highlight">
+          Multiple servers require shared storage or centralized storage.
+        </div>
+
+        <h2>Solution 1: Using EFS (Shared File System)</h2>
+
+        <p>
+          EFS allows multiple EC2 instances to access the same file system at
+          the same time. It behaves like a shared disk that is mounted on each
+          server.
+        </p>
+
+        <pre>
+EC2-1 ─┐
+       ├── EFS (shared folder)
+EC2-2 ─┘
+        </pre>
+
+        <h2>How EFS Works (Steps)</h2>
+
+        <ul>
+          <li>Create EFS file system</li>
+          <li>Attach security group (NFS port 2049)</li>
+          <li>Install EFS client on EC2</li>
+          <li>Mount EFS to a directory</li>
+          <li>Use it like a shared folder</li>
+        </ul>
+
+        <pre>
+mount -t efs fs-xxxx:/ /mnt/efs
+        </pre>
+
+        <p>Once mounted, all EC2 instances see the same files.</p>
+
+        <h2>Where EFS is Used</h2>
+
+        <ul>
+          <li>Shared uploads</li>
+          <li>WordPress media storage</li>
+          <li>Legacy applications</li>
+        </ul>
+
+        <h2>Limitations of EFS</h2>
+
+        <ul>
+          <li>More expensive</li>
+          <li>Slower than local disk</li>
+          <li>Requires mounting</li>
+        </ul>
+
+        <div class="highlight">
+          EFS is useful when your application requires a traditional file
+          system.
+        </div>
+
+        <h2>Solution 2: Using S3 (Object Storage)</h2>
+
+        <p>
+          S3 works completely differently. Instead of mounting storage, files
+          are accessed using URLs.
+        </p>
+
+        <pre>
+https://my-bucket.s3.amazonaws.com/image.jpg
+        </pre>
+
+        <p>
+          Applications upload files to S3 and then access them directly via
+          HTTP.
+        </p>
+
+        <h2>How S3 Works (Steps)</h2>
+
+        <ul>
+          <li>Create a bucket</li>
+          <li>Upload files</li>
+          <li>Set permissions (optional public access)</li>
+          <li>Access files via URL</li>
+        </ul>
+
+        <h2>Where S3 is Used</h2>
+
+        <ul>
+          <li>Images and media</li>
+          <li>Static website hosting</li>
+          <li>Backups and logs</li>
+          <li>Large-scale storage</li>
+        </ul>
+
+        <div class="highlight">
+          S3 is the modern and most scalable way to handle files.
+        </div>
+
+        <h2>EFS vs S3 (Key Differences)</h2>
+
+        <pre>
+EFS → File system (mounted)
+S3  → Object storage (URL-based)
+        </pre>
+
+        <ul>
+          <li>EFS is used inside EC2</li>
+          <li>S3 is accessed over the internet</li>
+          <li>EFS is shared storage</li>
+          <li>S3 is global storage</li>
+        </ul>
+
+        <h2>Real Architecture Comparison</h2>
+
+        <h3>Using EFS</h3>
+        <pre>
+User → ALB → EC2 → EFS
+        </pre>
+
+        <h3>Using S3 (Modern)</h3>
+        <pre>
+User → S3 (direct)
+User → EC2 (logic only)
+        </pre>
+
+        <h2>Best Practice Architecture</h2>
+
+        <pre>
+User
+ ↓
+ALB
+ ↓
+EC2 (application)
+ ↓
+S3 (images/files)
+        </pre>
+
+        <p>
+          In modern systems, EC2 handles logic, while S3 handles file storage.
+        </p>
+
+        <h2>When to Use What</h2>
+
+        <ul>
+          <li>Use EFS → when app needs shared file system</li>
+          <li>Use S3 → for images, videos, and static content</li>
+        </ul>
+
+        <h2>What I Learned</h2>
+
+        <ul>
+          <li>Not all storage is the same in cloud</li>
+          <li>EFS solves shared filesystem problems</li>
+          <li>S3 solves scalability and performance issues</li>
+          <li>Modern apps prefer S3 over EFS</li>
+        </ul>
+
+        <div class="highlight">
+          Good architecture separates compute (EC2) from storage (S3).
+        </div>
+
+        <h2>Final Thoughts</h2>
+
+        <p>
+          This lesson helped me understand one of the most important decisions
+          in cloud architecture: how to store and serve data efficiently.
+          Choosing between EFS and S3 is not just a technical choice — it
+          directly impacts performance, cost, and scalability.
+        </p>
+
+        <a href="blog.html" class="back">← Back to Blogs</a>
+      </div>
+    </main>
+  </body>
+</html>

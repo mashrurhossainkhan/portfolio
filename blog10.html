@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Building an AWS Application Load Balancer with Two EC2 Servers
+    </title>
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --heading: #0f172a;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --border: #e5e7eb;
+        --code-bg: #111827;
+        --code-text: #f9fafb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.8;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 920px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border-bottom: 1px solid var(--border);
+        padding: 60px 0 40px;
+      }
+
+      .hero h1 {
+        margin: 0 0 16px;
+        font-size: 2.4rem;
+        line-height: 1.2;
+        color: var(--heading);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 780px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .article-card {
+        background: var(--card);
+        margin: 40px auto 60px;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      h2 {
+        margin-top: 36px;
+        margin-bottom: 12px;
+        color: var(--heading);
+        font-size: 1.6rem;
+      }
+
+      h3 {
+        margin-top: 28px;
+        margin-bottom: 10px;
+        color: var(--heading);
+        font-size: 1.15rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 20px 22px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 10px;
+      }
+
+      .highlight-box {
+        background: var(--accent-soft);
+        border-left: 4px solid var(--accent);
+        padding: 18px 20px;
+        border-radius: 10px;
+        margin: 24px 0;
+      }
+
+      .highlight-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 16px 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 18px 0 24px;
+      }
+
+      code {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      blockquote {
+        margin: 24px 0;
+        padding: 16px 20px;
+        border-left: 4px solid var(--accent);
+        background: #f8fafc;
+        color: var(--heading);
+        font-style: italic;
+        border-radius: 8px;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 32px 0;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: white;
+        background: var(--accent);
+        padding: 12px 20px;
+        border-radius: 999px;
+        font-weight: bold;
+        transition: 0.2s ease;
+      }
+
+      .back-link:hover {
+        opacity: 0.9;
+      }
+
+      @media (max-width: 768px) {
+        .hero {
+          padding: 44px 0 30px;
+        }
+
+        .hero h1 {
+          font-size: 1.9rem;
+        }
+
+        .article-card {
+          padding: 24px 20px;
+          border-radius: 14px;
+        }
+
+        h2 {
+          font-size: 1.35rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>Building an AWS Application Load Balancer with Two EC2 Servers</h1>
+        <p>
+          A hands-on lesson from my AWS journey on launching multiple EC2
+          instances from a template, grouping them inside a target group, and
+          placing an Application Load Balancer in front so traffic can be routed
+          through one public endpoint.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <article class="article-card">
+        <p>
+          This was one of the most practical AWS labs I’ve done so far because
+          it finally connected multiple cloud concepts into one working setup.
+          Instead of thinking about one EC2 instance in isolation, this lesson
+          focused on how real web traffic is usually handled in cloud
+          environments: multiple backend servers, one frontend endpoint, health
+          checks, and controlled routing.
+        </p>
+
+        <h2>The Problem with One Web Server</h2>
+        <p>
+          A single web server may be enough for a basic test, but it is not a
+          strong production pattern. If traffic increases, performance can drop.
+          If maintenance is needed, users may be affected. If the instance goes
+          down, the whole site disappears.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            The better pattern is to run multiple web servers and place a load
+            balancer in front of them so users still see one entry point.
+          </p>
+        </div>
+
+        <p>
+          That is the core idea behind this lab. Two EC2 instances run the same
+          web application, and the Application Load Balancer distributes traffic
+          between them.
+        </p>
+
+        <h2>The Final Architecture</h2>
+        <pre><code>User
+  ↓
+Application Load Balancer
+  ↓
+Target Group
+  ↓
+web-01      web-02</code></pre>
+
+        <p>
+          The user never needs to know which backend server handled the request.
+          They just access the load balancer DNS name, and the load balancer
+          handles the rest.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step 1: Launch Two EC2 Instances from a Launch Template</h2>
+        <p>
+          The lab starts from the launch template created earlier. That template
+          already contains the AMI and the rest of the important configuration
+          needed to create identical servers quickly.
+        </p>
+
+        <p>From the launch template page, the next step is:</p>
+
+        <pre><code>Actions → Launch instance from template</code></pre>
+
+        <p>
+          Two instances are launched at the same time. Initially they share the
+          same name tag pattern, and then they are renamed clearly as:
+        </p>
+
+        <ul>
+          <li><strong>web-01</strong></li>
+          <li><strong>web-02</strong></li>
+        </ul>
+
+        <p>
+          This is important because both servers should behave the same way, but
+          it is still useful to identify them separately during testing and
+          troubleshooting.
+        </p>
+
+        <h2>Why the Launch Template Matters Here</h2>
+        <p>
+          If I had to configure everything manually each time, creating multiple
+          backend servers would become repetitive and error-prone. Using the
+          launch template means both instances are consistent. That consistency
+          matters a lot when placing them behind a load balancer.
+        </p>
+
+        <h2>Step 2: Create the Target Group</h2>
+        <p>
+          After the two instances are running, the next step is to create a
+          <strong>Target Group</strong>. A target group is basically a group of
+          backend resources that the load balancer will send traffic to. In this
+          case, those resources are EC2 instances.
+        </p>
+
+        <p>The target group is created with:</p>
+
+        <ul>
+          <li>Target type: <strong>Instances</strong></li>
+          <li>Protocol: <strong>HTTP</strong></li>
+          <li>Port: <strong>80</strong></li>
+        </ul>
+
+        <p>
+          Since Apache is serving the website on port 80, the target group must
+          match that.
+        </p>
+
+        <h2>Health Checks: The Most Important Part to Understand</h2>
+        <p>
+          One of the most useful parts of this lab was understanding health
+          checks properly. The target group does not just blindly send traffic
+          to any instance. It checks whether the instance is actually healthy
+          enough to serve traffic.
+        </p>
+
+        <p>In this lab, the health check configuration was based on:</p>
+
+        <ul>
+          <li>Protocol: <strong>HTTP</strong></li>
+          <li>Path: <strong>/</strong></li>
+          <li>Success code: <strong>200</strong></li>
+        </ul>
+
+        <p>
+          Since the site is being served from the default web root, using
+          <code>/</code> is correct. If the application lived under a different
+          path, for example <code>/app</code> or <code>/inner-peace</code>, then
+          the health check path would also need to match that.
+        </p>
+
+        <blockquote>
+          A lot of load balancer problems are not application problems at all.
+          They are often health check configuration problems.
+        </blockquote>
+
+        <p>
+          That was a very useful takeaway. If the service is actually running,
+          but the health check is pointing to the wrong protocol, wrong port, or
+          wrong path, the instance will still be marked unhealthy.
+        </p>
+
+        <h2>Health Threshold Changes</h2>
+        <p>
+          The instructor reduced the healthy threshold from the default value to
+          <strong>2</strong>. That means the instance only needed two successful
+          health checks before being marked healthy. This makes the lab faster,
+          while still keeping the logic realistic enough for learning.
+        </p>
+
+        <h2>Registering Targets</h2>
+        <p>
+          After the target group is created, both instances are selected and
+          added into it. This step matters because simply having running
+          instances is not enough. The load balancer can only route traffic to
+          instances that are actually registered inside the target group.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step 3: Create the Application Load Balancer</h2>
+        <p>
+          The next step is creating the actual
+          <strong>Application Load Balancer (ALB)</strong>. This is the public
+          entry point users will access from the browser.
+        </p>
+
+        <p>The important settings in this lab were:</p>
+
+        <ul>
+          <li>Name of the ALB</li>
+          <li>Scheme: <strong>Internet-facing</strong></li>
+          <li>Multiple subnets selected</li>
+          <li>HTTP listener on port 80</li>
+          <li>Routing rule pointing to the target group</li>
+        </ul>
+
+        <h2>Internet-Facing vs Internal ALB</h2>
+        <p>
+          This part is important because AWS gives two choices:
+          <strong>Internet-facing</strong> and <strong>Internal</strong>.
+        </p>
+
+        <p>
+          In this lab, the correct choice is
+          <strong>Internet-facing</strong> because the site needs to be
+          accessible from the browser over the internet.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            Internet-facing ALB is public and meant for user traffic. Internal
+            ALB is private and meant for service-to-service communication inside
+            AWS.
+          </p>
+        </div>
+
+        <p>
+          An internet-facing ALB gets a public DNS name and is reachable from
+          the internet. An internal ALB only uses private networking inside the
+          VPC and is commonly used for backend services.
+        </p>
+
+        <pre><code>Internet-facing ALB → public websites and apps
+Internal ALB       → backend APIs and internal services</code></pre>
+
+        <p>
+          This distinction is very useful in real architectures. For example, a
+          frontend app might sit behind an internet-facing ALB, while the
+          backend API might sit behind an internal ALB.
+        </p>
+
+        <h2>Subnets and Availability</h2>
+        <p>
+          Multiple subnets were selected during the ALB setup. This is part of
+          making the load balancer available across the region. Even if the
+          backend instances are currently in one specific zone, the ALB itself
+          can be prepared to span across multiple subnets and availability
+          zones.
+        </p>
+
+        <h2>Step 4: Create a Separate Security Group for the Load Balancer</h2>
+        <p>
+          One subtle but very important detail in the lab is that the load
+          balancer gets its <strong>own security group</strong>. This is not the
+          same security group as the EC2 instances.
+        </p>
+
+        <p>For the ALB security group, inbound rules allow:</p>
+
+        <ul>
+          <li>HTTP on port 80 from anywhere (IPv4 and optionally IPv6)</li>
+        </ul>
+
+        <p>That makes sense because the ALB is the public entry point.</p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step 5: Connect Listener to the Target Group</h2>
+        <p>
+          By default, the ALB listens on port 80. When a request arrives, the
+          ALB needs to know where to send it. That routing is configured by
+          pointing the listener to the target group created earlier.
+        </p>
+
+        <pre><code>HTTP : 80 → Forward to target group</code></pre>
+
+        <p>At this point, the main setup is complete:</p>
+
+        <ul>
+          <li>Two EC2 instances are running</li>
+          <li>Target group exists</li>
+          <li>ALB exists</li>
+          <li>Listener forwards traffic to the target group</li>
+        </ul>
+
+        <p>
+          It feels like everything should work immediately. But this is exactly
+          where one of the most important debugging lessons happens.
+        </p>
+
+        <h2>The Real Problem: Instances Were Unhealthy</h2>
+        <p>
+          After the ALB became active, opening the ALB DNS name in the browser
+          still did not work. The load balancer was up, but the target group
+          showed both instances as <strong>unhealthy</strong>. That is a very
+          common real-world situation.
+        </p>
+
+        <p>
+          The first instinct might be to blame Apache or the application. But in
+          this lab, the web servers were actually working. They were reachable
+          by public IP directly. So the real issue had to be somewhere between
+          the load balancer and the instances.
+        </p>
+
+        <h2>The Security Group Mistake</h2>
+        <p>
+          The EC2 instance security group originally allowed HTTP only from
+          <strong>my own IP</strong>. That was fine for direct browser testing,
+          but it did not allow HTTP from the load balancer.
+        </p>
+
+        <p>So from AWS’s perspective:</p>
+
+        <ul>
+          <li>I could access the web server directly</li>
+          <li>The ALB could not access the web server</li>
+          <li>The health checks failed</li>
+          <li>The target group marked the instances unhealthy</li>
+        </ul>
+
+        <blockquote>
+          This was the key lesson: the load balancer must be explicitly allowed
+          in the instance security group.
+        </blockquote>
+
+        <h2>The Fix</h2>
+        <p>The solution was to update the EC2 security group:</p>
+
+        <ul>
+          <li>Remove HTTP access from my IP</li>
+          <li>
+            Add HTTP access where the source is the
+            <strong>ALB security group</strong>
+          </li>
+        </ul>
+
+        <p>
+          In simple words, the EC2 instances should trust the ALB, not the whole
+          internet.
+        </p>
+
+        <pre><code>Allow HTTP : 80
+Source = ALB Security Group</code></pre>
+
+        <p>
+          After saving this rule, the health checks started passing. Within a
+          short time, the target group marked both instances as healthy.
+        </p>
+
+        <h2>Step 6: Final Test</h2>
+        <p>
+          Once the instances became healthy, the ALB DNS endpoint started
+          working correctly. At that point, the browser could access the website
+          through the load balancer instead of directly through the instance IP.
+        </p>
+
+        <p>
+          That was the real success of the lab. The important thing was not just
+          “the site opens.” The important thing was that it opens through the
+          proper architecture:
+        </p>
+
+        <pre><code>User → ALB DNS → Target Group → Healthy EC2 instances</code></pre>
+
+        <h2>Why This Lab Matters So Much</h2>
+        <p>
+          This lab felt important because it brought together several AWS ideas
+          into one real flow:
+        </p>
+
+        <ul>
+          <li>Launch multiple identical backend instances</li>
+          <li>Group them into a target group</li>
+          <li>Use health checks to decide who should receive traffic</li>
+          <li>Create an ALB as the single public endpoint</li>
+          <li>Secure the backend by allowing traffic only from the ALB</li>
+        </ul>
+
+        <p>
+          That is much closer to a real cloud deployment than simply launching
+          one EC2 instance and opening it directly to the world.
+        </p>
+
+        <h2>What I Learned from the Security Side</h2>
+        <p>
+          One of the strongest lessons here was security group design. The
+          backend instances should not simply accept public traffic if a load
+          balancer is meant to sit in front of them. A better pattern is:
+        </p>
+
+        <pre><code>Internet → ALB
+ALB → EC2 instances</code></pre>
+
+        <p>Not:</p>
+
+        <pre><code>Internet → EC2 directly</code></pre>
+
+        <p>
+          That small difference changes the architecture from a basic demo into
+          a more production-like setup.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Cleanup and Resource Awareness</h2>
+        <p>
+          The lab also ends with an important cleanup reminder. After testing,
+          the instances can be terminated, the load balancer deleted, and the
+          target group cleaned up. AWS resources should not be left running
+          without purpose.
+        </p>
+
+        <p>
+          One detail that remains is the AMI created earlier. That AMI still has
+          a snapshot behind it, which is why the snapshot is not deleted
+          immediately. It is tied to the image and can be used in later
+          exercises.
+        </p>
+
+        <h2>Final Thoughts</h2>
+        <p>
+          This was one of the clearest examples of how AWS services work
+          together. The Application Load Balancer was not difficult by itself,
+          but the real learning came from understanding the full chain:
+          instances, health checks, security groups, listeners, target groups,
+          and DNS endpoint behavior.
+        </p>
+
+        <p>
+          The biggest takeaway for me was that real cloud architecture is not
+          just about “making it work.” It is about making it work in the right
+          flow, with clean routing and proper security boundaries.
+        </p>
+
+        <p>
+          After this lab, load balancers stopped feeling abstract. They started
+          feeling like a practical and necessary part of building reliable web
+          systems in AWS.
+        </p>
+
+        <div class="footer-note">
+          This blog is part of my hands-on DevOps and AWS learning journey,
+          where I document technical concepts in a simple and practical way as I
+          build stronger cloud fundamentals.
+        </div>
+
+        <a class="back-link" href="blog.html">← Back to All Blogs</a>
+      </article>
+    </main>
+  </body>
+</html>

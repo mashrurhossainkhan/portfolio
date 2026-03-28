@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical learning guide to AWS EC2 covering instance setup, SSH access, security groups, web server installation, and key cloud concepts."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Getting Started with AWS EC2 | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        background: #f8f9fa;
+        padding: 120px 0 70px;
+      }
+
+      .blog-content {
+        padding: 60px 0 80px;
+      }
+
+      .blog-card {
+        background: #ffffff;
+        border: 1px solid #ececec;
+        border-radius: 18px;
+        padding: 2.5rem;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.05);
+      }
+
+      .blog-content h2,
+      .blog-content h3,
+      .blog-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-content ul {
+        padding-left: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .blog-content pre {
+        background: #111827;
+        color: #f9fafb;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .blog-content code {
+        color: #f9fafb;
+      }
+
+      .blog-content p code,
+      .blog-content li code {
+        background: #f1f3f9;
+        color: #474559;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+      }
+
+      .blog-note {
+        background: #f8f9fc;
+        border-left: 4px solid #474559;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-tip {
+        background: #eef8ff;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .back-link {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .meta-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 767.98px) {
+        .blog-hero {
+          padding: 100px 0 50px;
+        }
+
+        .blog-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"
+          ><i class="uil uil-user"></i> Mashrur</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"
+                ><span data-hover="About">About</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span data-hover="Projects">Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#resume" class="nav-link"
+                ><span data-hover="Resume">Resume</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"
+                ><span data-hover="Blogs">Blogs</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span data-hover="Contact">Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 text-center">
+            <a href="index.html#blogs" class="back-link">← Back to Blogs</a>
+            <h1 class="mt-4">
+              Getting Started with AWS EC2: My Step-by-Step Learning Notes
+            </h1>
+            <p class="meta-text mt-3 mb-0">
+              A practical walkthrough of launching an EC2 instance, configuring
+              access, installing a web server, and learning core AWS concepts.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9">
+            <div class="blog-card">
+              <p>
+                EC2 stands for
+                <strong>Elastic Compute Cloud</strong>, and it is basically
+                AWS’s way of giving us a virtual machine in the cloud.
+              </p>
+
+              <p>
+                Instead of buying a physical server, setting it up, and
+                maintaining it manually, EC2 lets us launch a server in minutes.
+                In this blog, I want to share the exact flow I learned for
+                creating and working with an EC2 instance step by step.
+              </p>
+
+              <div class="blog-tip">
+                <strong>Why this matters:</strong> EC2 is one of the clearest
+                ways to understand how compute, networking, storage, security,
+                and remote access work together in the cloud.
+              </div>
+
+              <h2>What is EC2?</h2>
+              <p>
+                EC2 is a cloud-based virtual server service. It allows us to
+                create a machine, choose its operating system, define CPU and
+                memory size, attach storage, control network access, and connect
+                to it remotely.
+              </p>
+
+              <p>
+                The word <strong>elastic</strong> means the server can scale up
+                or down. For example, if a small machine is not enough, we can
+                later change it to a bigger one.
+              </p>
+
+              <h2>Why EC2 is Important</h2>
+              <p>
+                EC2 is important because it teaches many basic cloud concepts
+                together:
+              </p>
+              <ul>
+                <li>Virtual machines</li>
+                <li>Public and private IP addresses</li>
+                <li>Storage volumes</li>
+                <li>Firewall rules</li>
+                <li>SSH access</li>
+                <li>Elastic scaling</li>
+              </ul>
+
+              <h2>Before Launching an EC2 Instance</h2>
+              <p>
+                One good practice I learned is that we should not just randomly
+                click “Launch Instance.” Before creating any server, we should
+                first gather the requirements.
+              </p>
+
+              <h3>Step 1: Gather the Requirements</h3>
+              <p>Before launching, decide the following:</p>
+              <ul>
+                <li>Which operating system is needed</li>
+                <li>How much CPU and RAM are required</li>
+                <li>How much storage is needed</li>
+                <li>What application or service will run on it</li>
+                <li>
+                  Which environment it belongs to: Dev, QA, Staging, or
+                  Production
+                </li>
+                <li>Who will manage or own the server</li>
+              </ul>
+
+              <p>
+                This step helps us choose the correct AMI, instance type,
+                storage, security group, and naming convention.
+              </p>
+
+              <h3>Step 2: Create the Key Pair</h3>
+              <p>
+                A key pair is used for logging into the EC2 instance. For Linux
+                instances, this is mainly used for SSH access.
+              </p>
+
+              <p>
+                The clean way is to create the key before launching the server.
+              </p>
+
+              <ul>
+                <li>Go to <strong>EC2</strong></li>
+                <li>Open <strong>Key Pairs</strong></li>
+                <li>Click <strong>Create Key Pair</strong></li>
+                <li>Give it a proper name using a naming convention</li>
+                <li>
+                  Choose <strong>.pem</strong> if using Mac, Linux, or Git Bash
+                </li>
+                <li>Download and store it safely</li>
+              </ul>
+
+              <p>
+                A good naming style could be based on project, environment, and
+                region, so the key is easier to identify later.
+              </p>
+
+              <h3>Step 3: Create the Security Group</h3>
+              <p>
+                A security group works like a firewall. It controls which
+                traffic is allowed to enter or leave the server.
+              </p>
+
+              <ul>
+                <li>Go to <strong>Security Groups</strong></li>
+                <li>Click <strong>Create Security Group</strong></li>
+                <li>Give it a proper name</li>
+                <li>Add an inbound rule for <strong>SSH</strong> on port 22</li>
+                <li>
+                  Use <strong>My IP</strong> as the source for secure access
+                </li>
+              </ul>
+
+              <p>
+                At this stage, only add rules that are actually needed. If the
+                web server is not running yet, there is no point in opening HTTP
+                access early.
+              </p>
+
+              <p>
+                I also learned not to allow “all traffic from anywhere” unless
+                there is a very specific reason, because that removes meaningful
+                protection.
+              </p>
+
+              <h2>Launching the EC2 Instance</h2>
+
+              <h3>Step 4: Open the EC2 Launch Wizard</h3>
+              <ul>
+                <li>Go to <strong>EC2 Dashboard</strong></li>
+                <li>Click <strong>Launch Instance</strong></li>
+              </ul>
+
+              <h3>Step 5: Add a Name and Tags</h3>
+              <p>
+                Give the instance a clear name such as <strong>web01</strong>.
+                Then add useful tags like:
+              </p>
+              <ul>
+                <li>Name</li>
+                <li>Project</li>
+                <li>Environment</li>
+                <li>Owner</li>
+              </ul>
+
+              <p>
+                Tags help with identification, filtering, organization, and
+                billing.
+              </p>
+
+              <h3>Step 6: Choose the AMI</h3>
+              <p>
+                The AMI, or Amazon Machine Image, is the operating system
+                template for the server.
+              </p>
+
+              <p>Examples include:</p>
+              <ul>
+                <li>Ubuntu</li>
+                <li>Amazon Linux</li>
+                <li>Windows Server</li>
+              </ul>
+
+              <p>
+                In my learning, Ubuntu and Amazon Linux were common starting
+                options, especially for free tier practice.
+              </p>
+
+              <h3>Step 7: Choose the Instance Type</h3>
+              <p>
+                The instance type defines the machine size, including CPU and
+                memory.
+              </p>
+
+              <p>
+                For practice, a free-tier option like <strong>t2.micro</strong>
+                is a safe and common choice.
+              </p>
+
+              <h3>Step 8: Select the Key Pair</h3>
+              <p>
+                Choose the key pair created earlier. This is the key that will
+                later be used to log in to the instance.
+              </p>
+
+              <h3>Step 9: Configure Network Settings</h3>
+              <p>
+                Here we select the security group created earlier so that SSH
+                access is allowed from our own IP.
+              </p>
+
+              <h3>Step 10: Configure Storage</h3>
+              <p>
+                Most Linux AMIs come with a default volume, often around 8 GB.
+                This storage is provided through EBS, which stands for
+                <strong>Elastic Block Store</strong>.
+              </p>
+
+              <p>
+                This volume works like the virtual hard disk of the machine and
+                stores the operating system and application data.
+              </p>
+
+              <h3>Step 11: Launch the Instance</h3>
+              <p>
+                Once the configuration is ready, click
+                <strong>Launch Instance</strong>.
+              </p>
+
+              <p>
+                After a short wait, the instance moves into the
+                <strong>Running</strong> state.
+              </p>
+
+              <h2>Connecting to the EC2 Instance</h2>
+
+              <h3>Step 12: Copy the Public IP</h3>
+              <p>
+                After launch, the instance gets a public IP and a private IP.
+              </p>
+
+              <ul>
+                <li>
+                  <strong>Private IP</strong> stays fixed while the instance
+                  exists
+                </li>
+                <li>
+                  <strong>Public IP</strong> changes if the instance is stopped
+                  and started again
+                </li>
+              </ul>
+
+              <h3>Step 13: SSH into the Server</h3>
+              <p>
+                For a Linux machine, connect using SSH from terminal or Git
+                Bash.
+              </p>
+
+              <pre><code>ssh -i your-key.pem ubuntu@your-public-ip</code></pre>
+
+              <p>
+                If the AMI is Ubuntu, the username is usually
+                <strong>ubuntu</strong>. For Amazon Linux, it is commonly
+                <strong>ec2-user</strong>.
+              </p>
+
+              <h3>Step 14: Switch to Root User</h3>
+              <pre><code>sudo -i</code></pre>
+
+              <p>
+                This gives administrative access so packages and services can be
+                managed more easily.
+              </p>
+
+              <h2>Installing a Web Server</h2>
+
+              <h3>Step 15: Update Packages and Install Apache</h3>
+              <p>On Ubuntu:</p>
+              <pre><code>apt update && apt install apache2 -y</code></pre>
+
+              <p>On Amazon Linux:</p>
+              <pre><code>dnf install httpd -y</code></pre>
+
+              <h3>Step 16: Check the Service Status</h3>
+              <p>On Ubuntu:</p>
+              <pre><code>systemctl status apache2</code></pre>
+
+              <p>On Amazon Linux:</p>
+              <pre><code>systemctl status httpd</code></pre>
+
+              <p>This confirms whether the web server is active and running.</p>
+
+              <h3>Step 17: Deploy Website Files</h3>
+              <p>
+                After installing the web server, website files can be
+                downloaded, unzipped, and copied into the default web root
+                directory.
+              </p>
+
+              <p>For example:</p>
+              <ul>
+                <li>Install unzip if needed</li>
+                <li>Download template files</li>
+                <li>Extract them</li>
+                <li>Copy them into <code>/var/www/html</code></li>
+              </ul>
+
+              <h3>Step 18: Restart the Web Service</h3>
+              <p>On Ubuntu:</p>
+              <pre><code>systemctl restart apache2</code></pre>
+
+              <p>On Amazon Linux:</p>
+              <pre><code>systemctl restart httpd</code></pre>
+
+              <h2>Opening the Website to the Public</h2>
+
+              <h3>Step 19: Understand Why the Site May Not Open Yet</h3>
+              <p>
+                Even if Apache is running, the website may still not open in the
+                browser because the security group only allows SSH so far.
+              </p>
+
+              <h3>Step 20: Add HTTP Rule in Security Group</h3>
+              <ul>
+                <li>Go to the instance</li>
+                <li>Open the linked security group</li>
+                <li>Edit inbound rules</li>
+                <li>Add <strong>HTTP</strong> on port <strong>80</strong></li>
+                <li>
+                  Allow from anywhere if the site is meant for public access
+                </li>
+              </ul>
+
+              <p>
+                After saving the rule, the website can be accessed through the
+                public IP in the browser.
+              </p>
+
+              <div class="blog-note">
+                A running server is not enough by itself. Security groups and
+                network rules decide whether the application is actually
+                reachable from outside.
+              </div>
+
+              <h2>Important EC2 Concepts I Learned</h2>
+
+              <h3>1. Public IP vs Private IP</h3>
+              <p>
+                The private IP stays with the instance, but the public IP can
+                change after stop and start.
+              </p>
+
+              <h3>2. Elastic IP</h3>
+              <p>
+                If a static public IP is needed, AWS provides
+                <strong>Elastic IP</strong>. It can be allocated and attached to
+                the instance, but it should be released when not needed because
+                it may create charges.
+              </p>
+
+              <h3>3. Network Interface</h3>
+              <p>
+                The instance’s networking details such as private IP, public IP,
+                Elastic IP, and security groups are attached to the network
+                interface.
+              </p>
+
+              <h3>4. Volume</h3>
+              <p>
+                Each EC2 instance comes with a storage volume, usually an EBS
+                volume. This acts as the disk for the machine.
+              </p>
+
+              <h3>5. Instance Type Can Be Changed</h3>
+              <p>
+                If the machine needs more resources later, the instance type can
+                be changed after stopping the instance first.
+              </p>
+
+              <h3>6. Termination Protection</h3>
+              <p>
+                AWS also provides termination protection, which helps prevent
+                accidental deletion of important instances.
+              </p>
+
+              <h2>Cleanup Matters Too</h2>
+              <p>
+                One thing I found important while learning AWS is cleanup. After
+                practice, resources should be removed properly to avoid
+                unnecessary costs.
+              </p>
+
+              <ul>
+                <li>Terminate unused instances</li>
+                <li>Release unused Elastic IPs</li>
+                <li>Keep track of volumes and security groups</li>
+              </ul>
+
+              <h2>Final Thoughts</h2>
+              <p>
+                Learning EC2 taught me much more than just launching a server.
+                It helped me understand how cloud infrastructure is built step
+                by step: compute, networking, storage, security, access, and
+                scaling.
+              </p>
+
+              <p>
+                What I liked most is that EC2 is practical. It is not just
+                theory. You can launch a server, connect to it, install
+                software, deploy a site, and understand how real cloud
+                environments work.
+              </p>
+
+              <p>
+                For me, EC2 feels like one of the best starting points in AWS
+                because it introduces the foundation of cloud in a hands-on way.
+              </p>
+
+              <a
+                href="index.html#blogs"
+                class="btn custom-btn custom-btn-bg custom-btn-link mt-4"
+              >
+                Back to Blogs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-12">
+            <p class="copyright-text text-center">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+            <p class="copyright-text text-center">
+              Built with the existing portfolio template structure and
+              customised for Mashrur's blog.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

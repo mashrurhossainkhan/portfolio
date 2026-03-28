@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical overview of AWS Systems Manager and CloudShell for secure EC2 access, browser-based shell sessions, and scalable cloud operations."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>AWS Systems Manager and CloudShell | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        background: #f8f9fa;
+        padding: 120px 0 70px;
+      }
+
+      .blog-content {
+        padding: 60px 0 80px;
+      }
+
+      .blog-card {
+        background: #ffffff;
+        border: 1px solid #ececec;
+        border-radius: 18px;
+        padding: 2.5rem;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.05);
+      }
+
+      .blog-content h2,
+      .blog-content h3,
+      .blog-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-content ul {
+        padding-left: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .blog-content pre {
+        background: #111827;
+        color: #f9fafb;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin: 1rem 0 1.5rem;
+      }
+
+      .blog-content code {
+        color: #f9fafb;
+      }
+
+      .blog-content p code,
+      .blog-content li code {
+        background: #f1f3f9;
+        color: #474559;
+        padding: 0.15rem 0.45rem;
+        border-radius: 6px;
+      }
+
+      .blog-note {
+        background: #fff6df;
+        border-left: 4px solid #ffc107;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-tip {
+        background: #eef8ff;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .back-link {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .meta-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 767.98px) {
+        .blog-hero {
+          padding: 100px 0 50px;
+        }
+
+        .blog-card {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"
+          ><i class="uil uil-user"></i> Mashrur</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"
+                ><span data-hover="About">About</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span data-hover="Projects">Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#resume" class="nav-link"
+                ><span data-hover="Resume">Resume</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"
+                ><span data-hover="Blogs">Blogs</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span data-hover="Contact">Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 text-center">
+            <a href="index.html#blogs" class="back-link">← Back to Blogs</a>
+            <h1 class="mt-4">Learning AWS Systems Manager and CloudShell</h1>
+            <p class="meta-text mt-3 mb-0">
+              A practical look at browser-based EC2 access, Run Command, and
+              CloudShell for more secure and scalable AWS operations.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9">
+            <div class="blog-card">
+              <p>
+                As I continued learning AWS, I came across two very useful
+                services: <strong>AWS Systems Manager</strong> and
+                <strong>AWS CloudShell</strong>. Both of them make day-to-day
+                cloud operations much easier, especially when managing EC2
+                instances. This lecture showed me that AWS is not only about
+                launching servers, but also about managing them in smarter and
+                more secure ways.
+              </p>
+
+              <div class="blog-tip">
+                <strong>Why this stood out:</strong> These tools reduce setup
+                friction and make server access feel more modern, centralized,
+                and operationally safe.
+              </div>
+
+              <h2>What is AWS Systems Manager?</h2>
+              <p>
+                AWS Systems Manager, often called <strong>SSM</strong>, is a
+                service that helps manage servers centrally. Instead of
+                connecting to machines one by one with traditional SSH, Systems
+                Manager allows administrators to access and control EC2
+                instances directly from AWS. It is especially useful when
+                working with many servers at once.
+              </p>
+
+              <h2>Why It Feels Useful</h2>
+              <p>
+                One of the simplest but most impressive use cases is being able
+                to open a shell session on an EC2 instance directly from the
+                browser. There is no need to use Git Bash, no need to copy SSH
+                commands, and no need to worry about opening port 22 just for
+                access. That already makes it feel cleaner and more secure.
+              </p>
+
+              <p>
+                Another strong feature is the ability to run the same command on
+                one instance or on many instances at the same time. If a team is
+                managing dozens or even hundreds of servers, this becomes
+                extremely practical for patching, restarting services, or
+                checking logs.
+              </p>
+
+              <h2>Step 1: Launch an EC2 Instance</h2>
+              <p>
+                The lecture starts by launching a normal EC2 instance. The
+                example used an Ubuntu AMI with a free-tier instance type such
+                as <strong>t2.micro</strong> or <strong>t3.micro</strong>. A key
+                pair and security group can still be selected during launch, but
+                for this case the key is not the main focus because the
+                connection will happen through Systems Manager.
+              </p>
+
+              <h2>Step 2: Create an IAM Role for EC2</h2>
+              <p>
+                To let the EC2 instance talk to Systems Manager, the instance
+                needs permission. This is where an <strong>IAM role</strong> is
+                used. The role is created for the EC2 service, and the required
+                policy attached is
+                <strong>AmazonSSMManagedInstanceCore</strong>. Without this
+                permission, the instance will not be able to show up properly
+                inside Session Manager.
+              </p>
+
+              <h2>Step 3: Attach the Role to the Instance</h2>
+              <p>
+                After creating the role, it needs to be attached to the EC2
+                instance. This is done from the EC2 actions menu by modifying
+                the IAM role. Once attached, the instance gets the permission
+                needed to communicate with Systems Manager.
+              </p>
+
+              <h2>Step 4: Connect Through Session Manager</h2>
+              <p>
+                In AWS Systems Manager, there is an option called
+                <strong>Session Manager</strong>. From there, I can start a
+                session, select the instance, and open a shell directly in the
+                browser. It feels similar to SSH, but much simpler from an
+                operations point of view. Inside the session, I can run commands
+                normally, switch to root, check the operating system, and manage
+                the server.
+              </p>
+
+              <h2>Why This is Better Than Traditional SSH in Some Cases</h2>
+              <p>
+                With Session Manager, I do not need to depend on SSH keys for
+                everyday access. I also do not need to open SSH access in the
+                security group just to log in. That reduces some manual work and
+                can improve security in certain situations. For cloud
+                operations, this is a very practical approach.
+              </p>
+
+              <div class="blog-note">
+                Removing the need for open SSH access can simplify operations
+                and reduce exposure, especially when instances are managed at
+                scale.
+              </div>
+
+              <h2>Step 5: Use Run Command</h2>
+              <p>
+                The next feature shown in the lecture is
+                <strong>Run Command</strong>. This allows commands or scripts to
+                be sent to one or more instances without opening a shell session
+                manually. The selected document for this was
+                <strong>AWS-RunShellScript</strong>. Once selected, commands can
+                be added line by line and then executed on chosen instances.
+              </p>
+
+              <p>
+                For example, I could run a basic update command, list files
+                inside a directory, or even run a longer shell script. After
+                execution, Systems Manager shows whether the command succeeded,
+                and the output can be viewed directly from the AWS interface.
+              </p>
+
+              <h2>Managing Multiple Servers</h2>
+              <p>
+                One important idea here is scale. If instances are tagged
+                properly, the same command can be applied to all matching
+                servers. That means instead of connecting to machines one by
+                one, a single action can handle an entire group. This is where
+                Systems Manager starts to feel like a real operations tool, not
+                just a convenience feature.
+              </p>
+
+              <h2>Other Things Inside Systems Manager</h2>
+              <p>
+                The lecture also mentions that Systems Manager includes more
+                than just shell access and run command. It also has areas
+                related to compliance, change management, parameter storage,
+                CloudWatch integration, operations center, and incident
+                management. Even though not all of them were used in this
+                lesson, it showed me that Systems Manager is a much broader
+                service for cloud operations.
+              </p>
+
+              <h2>What is AWS CloudShell?</h2>
+              <p>
+                The second part of the lecture focused on
+                <strong>AWS CloudShell</strong>. CloudShell is a browser-based
+                terminal provided by AWS. The biggest advantage is that AWS CLI
+                is already installed and configured there. That means I do not
+                need to install the AWS CLI on my own machine or set up access
+                keys just to run commands from the browser.
+              </p>
+
+              <h2>Why CloudShell is Convenient</h2>
+              <p>
+                With CloudShell, I can directly run AWS commands like listing
+                EC2 instances or checking S3 buckets. Since it already works
+                with the currently logged-in AWS user, it removes some setup
+                friction. For quick testing, troubleshooting, or command
+                practice, this is extremely handy.
+              </p>
+
+              <h2>CloudShell and Amazon Q Together</h2>
+              <p>
+                Another useful part is how CloudShell can work with
+                <strong>Amazon Q Developer</strong>. If I do not remember a
+                command, I can ask Amazon Q for help, get the suggested command,
+                and run it right away in CloudShell. So in one browser session,
+                I have the AWS console, a terminal, and an AI assistant all
+                together.
+              </p>
+
+              <h2>Main Lesson I Took From This</h2>
+              <p>
+                This lecture made me realize that being a DevOps engineer is not
+                just about knowing one way to access a server. There are
+                multiple tools available depending on the situation: SSH,
+                Systems Manager, AWS CLI, CloudShell, and AI assistants like
+                Amazon Q. The important thing is to understand what each tool is
+                good for and use the right one when needed.
+              </p>
+
+              <h2>Final Thoughts</h2>
+              <p>
+                AWS Systems Manager and CloudShell both felt very practical to
+                me. Systems Manager showed me a safer and more scalable way to
+                access and control EC2 instances, while CloudShell showed how
+                easy AWS CLI work can become when the environment is already
+                prepared.
+              </p>
+
+              <p>
+                Together, these tools make AWS operations feel more modern,
+                centralized, and efficient. For me, this lecture was a good
+                reminder that in cloud engineering, knowing the management tools
+                is just as important as knowing how to launch the server itself.
+              </p>
+
+              <a
+                href="index.html#blogs"
+                class="btn custom-btn custom-btn-bg custom-btn-link mt-4"
+              >
+                Back to Blogs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-12">
+            <p class="copyright-text text-center">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+            <p class="copyright-text text-center">
+              Built with the existing portfolio template structure and
+              customised for Mashrur's blog.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

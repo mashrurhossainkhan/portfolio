@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on AWS RDS, explaining managed databases, high availability, read replicas, and real-world DevOps architecture."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Understanding AWS RDS | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        margin-top: 40px;
+        font-weight: 700;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+        color: #222;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+      </div>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="blog-header text-center">
+      <div class="container">
+        <h1>Understanding AWS RDS</h1>
+        <p>
+          A practical breakdown of managed databases in AWS, including high
+          availability, read replicas, and real-world DevOps usage.
+        </p>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="col-lg-10 mx-auto">
+          <p>
+            When I first started learning databases in AWS, I realized that
+            managing a database server manually is not easy at all. It involves
+            installation, configuration, backups, monitoring, scaling, and
+            security — all of which require continuous effort.
+          </p>
+
+          <p>
+            This is where AWS RDS (Relational Database Service) becomes very
+            powerful. It removes most of the operational burden and lets you
+            focus on building applications instead of managing infrastructure.
+          </p>
+
+          <h2>What is AWS RDS?</h2>
+          <p>
+            AWS RDS is a managed relational database service. It allows you to
+            create and run databases like MySQL, PostgreSQL, or others without
+            worrying about the underlying server management.
+          </p>
+
+          <div class="highlight-box">
+            Instead of managing the database yourself, AWS handles backups,
+            patching, scaling, and monitoring automatically.
+          </div>
+
+          <h2>Why Not Just Use EC2 for Database?</h2>
+          <p>
+            You could install MySQL on an EC2 instance, but then you would have
+            to:
+          </p>
+
+          <ul>
+            <li>Configure everything manually</li>
+            <li>Handle backups and recovery</li>
+            <li>Monitor performance</li>
+            <li>Apply security patches</li>
+            <li>Manage scaling</li>
+          </ul>
+
+          <p>
+            With RDS, AWS takes care of all of this, which makes it much more
+            reliable and easier to maintain.
+          </p>
+
+          <h2>How RDS Works in Real Architecture</h2>
+
+          <div class="code-block">
+            User → EC2 (Application) → RDS (Database)
+          </div>
+
+          <p>In most real-world setups:</p>
+
+          <ul>
+            <li>Users interact with the application (frontend/backend)</li>
+            <li>The application runs on EC2</li>
+            <li>The database (RDS) is accessed privately</li>
+          </ul>
+
+          <p>
+            This means the database is not directly exposed to the internet,
+            which improves security.
+          </p>
+
+          <h2>Key Features of RDS</h2>
+
+          <h3>1. Automated Backups</h3>
+          <p>
+            RDS automatically takes backups so that you can restore your
+            database if something goes wrong.
+          </p>
+
+          <h3>2. Security</h3>
+          <p>
+            RDS runs inside a VPC and is usually not publicly accessible. Access
+            is controlled using security groups.
+          </p>
+
+          <h3>3. Easy Scaling</h3>
+          <p>
+            You can increase storage or upgrade instance type without complex
+            manual setup.
+          </p>
+
+          <h3>4. Monitoring</h3>
+          <p>
+            AWS provides monitoring tools like CloudWatch to track database
+            performance.
+          </p>
+
+          <h2>High Availability vs Performance</h2>
+
+          <h3>Multi-AZ (High Availability)</h3>
+          <div class="code-block">Primary DB → Standby DB (another AZ)</div>
+
+          <p>
+            If the primary database fails, AWS automatically switches to the
+            standby. This ensures high availability.
+          </p>
+
+          <h3>Read Replicas (Performance)</h3>
+          <div class="code-block">Primary DB → Read Replica(s)</div>
+
+          <p>
+            Read replicas are used to handle read-heavy workloads. Instead of
+            sending all queries to one database, read queries can go to
+            replicas, improving performance.
+          </p>
+
+          <div class="highlight-box">
+            Multi-AZ is for reliability, while read replicas are for
+            performance.
+          </div>
+
+          <h2>Connecting to RDS</h2>
+
+          <p>RDS provides an endpoint, which acts as the connection URL.</p>
+
+          <div class="code-block">mysql -h your-endpoint -u admin -p</div>
+
+          <p>
+            Access is controlled by security groups. Typically, you allow access
+            only from your EC2 instance on port 3306 (for MySQL).
+          </p>
+
+          <h2>Important Best Practices</h2>
+
+          <ul>
+            <li>Do not make your database publicly accessible</li>
+            <li>Use security groups to restrict access</li>
+            <li>Enable backups in production</li>
+            <li>Use Multi-AZ for critical applications</li>
+            <li>Use read replicas for scaling reads</li>
+          </ul>
+
+          <h2>Aurora (Special Mention)</h2>
+
+          <p>
+            AWS Aurora is an optimized database engine provided by AWS. It is
+            compatible with MySQL and PostgreSQL but offers better performance
+            and scalability.
+          </p>
+
+          <p>
+            It is widely used in production systems because it is faster and
+            more cost-efficient compared to traditional database setups.
+          </p>
+
+          <h2>What I Learned</h2>
+
+          <p>
+            RDS helped me understand that databases are not just about storing
+            data. They are about reliability, recovery, performance, and
+            security.
+          </p>
+
+          <p>
+            Using a managed service like RDS allows developers and DevOps
+            engineers to focus more on application logic rather than database
+            maintenance.
+          </p>
+
+          <h2>Final Thoughts</h2>
+
+          <p>
+            AWS RDS is one of the most practical services for real-world
+            applications. It simplifies complex database operations and provides
+            powerful features out of the box.
+          </p>
+
+          <p>
+            If you're learning AWS or DevOps, setting up an RDS instance and
+            connecting it from EC2 is a great hands-on exercise to understand
+            how backend systems work in real applications.
+          </p>
+
+          <br />
+          <a href="index.html#blogs"><strong>← Back to Blogs</strong></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5 text-center">
+      <p>© 2026 Mashrur Hossain Khan</p>
+    </footer>
+
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

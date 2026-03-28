@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="How I deployed my portfolio using AWS S3, CloudFront CDN, custom domain with Namecheap, and HTTPS with ACM."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Deploying My Portfolio with AWS S3 & CloudFront | Mashrur</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        margin-top: 40px;
+        font-weight: 700;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- NAV -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+      </div>
+    </nav>
+
+    <!-- HEADER -->
+    <section class="blog-header text-center">
+      <div class="container">
+        <h1>Deploying My Portfolio with AWS S3 & CloudFront</h1>
+        <p>
+          A complete journey of deploying my static portfolio using S3, adding
+          CDN with CloudFront, connecting a custom domain from Namecheap, and
+          enabling HTTPS.
+        </p>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="col-lg-10 mx-auto">
+          <p>
+            After building my portfolio website, I wanted to deploy it in a way
+            that reflects real-world DevOps practices. Instead of using shared
+            hosting, I chose AWS to host and scale my static site.
+          </p>
+
+          <p>
+            In this blog, I’ll walk through how I deployed my portfolio using
+            S3, connected it to CloudFront for CDN, and linked it with my custom
+            domain.
+          </p>
+
+          <h2>Why I Chose S3 for Hosting</h2>
+
+          <p>
+            My portfolio is a static website (HTML, CSS, JS), so I didn’t need a
+            backend server. S3 is perfect for this type of application.
+          </p>
+
+          <ul>
+            <li>Very low cost</li>
+            <li>No server maintenance</li>
+            <li>Highly scalable</li>
+          </ul>
+
+          <div class="highlight-box">
+            S3 static hosting is one of the simplest and cheapest ways to deploy
+            a website in AWS.
+          </div>
+
+          <h2>Step 1: Upload Website to S3</h2>
+
+          <p>I created an S3 bucket and uploaded all my files:</p>
+
+          <ul>
+            <li>index.html</li>
+            <li>blog pages</li>
+            <li>css, js, images folders</li>
+          </ul>
+
+          <p>
+            Then I enabled static website hosting and made the files public.
+          </p>
+
+          <div class="code-block">
+            http://bucket-name.s3-website-region.amazonaws.com
+          </div>
+
+          <p>At this point, my website was live, but it had two problems:</p>
+
+          <ul>
+            <li>No HTTPS</li>
+            <li>No CDN (slow for global users)</li>
+          </ul>
+
+          <h2>Step 2: Add CloudFront CDN</h2>
+
+          <p>
+            To improve performance and security, I created a CloudFront
+            distribution and connected it to my S3 bucket.
+          </p>
+
+          <div class="code-block">User → CloudFront → S3</div>
+
+          <p>This allowed:</p>
+
+          <ul>
+            <li>Global caching (faster loading)</li>
+            <li>HTTPS support</li>
+            <li>Better reliability</li>
+          </ul>
+
+          <h3>Important Lesson</h3>
+
+          <p>
+            At first, my site wasn’t loading correctly through CloudFront. The
+            issue was that I forgot to set the default root object.
+          </p>
+
+          <div class="code-block">Default Root Object = index.html</div>
+
+          <p>
+            Without this, CloudFront didn’t know what to serve when accessing
+            the root URL.
+          </p>
+
+          <h2>Step 3: Add Custom Domain (Namecheap)</h2>
+
+          <p>
+            I purchased a domain from Namecheap and configured DNS to point to
+            CloudFront.
+          </p>
+
+          <div class="code-block">www → d3ue5nkap6qeu1.cloudfront.net</div>
+
+          <p>
+            Since root domains don’t support CNAME in Namecheap, I redirected:
+          </p>
+
+          <div class="code-block">mhkhan.site → www.mhkhan.site</div>
+
+          <h2>Step 4: Enable HTTPS with ACM</h2>
+
+          <p>
+            I used AWS Certificate Manager (ACM) to create a free SSL
+            certificate.
+          </p>
+
+          <ul>
+            <li>Requested certificate in us-east-1</li>
+            <li>Validated via DNS</li>
+            <li>Attached to CloudFront</li>
+          </ul>
+
+          <p>After deployment, my site became fully secure:</p>
+
+          <div class="code-block">https://www.mhkhan.site</div>
+
+          <h2>Final Architecture</h2>
+
+          <div class="code-block">
+            User → Domain (Namecheap) → CloudFront (CDN + HTTPS) → S3 (static
+            website)
+          </div>
+
+          <h2>What I Learned</h2>
+
+          <ul>
+            <li>How static hosting works in S3</li>
+            <li>How CloudFront improves performance</li>
+            <li>How DNS connects domain to infrastructure</li>
+            <li>Importance of HTTPS and certificates</li>
+          </ul>
+
+          <p>
+            This project helped me understand how real-world frontend deployment
+            works in cloud environments.
+          </p>
+
+          <h2>Final Thoughts</h2>
+
+          <p>
+            Deploying a website using S3 and CloudFront is simple once you
+            understand the flow, but it also teaches important DevOps concepts
+            like CDN, DNS, and security.
+          </p>
+
+          <p>
+            This setup is not just for portfolios — it’s used in production for
+            many large-scale applications.
+          </p>
+
+          <br />
+          <a href="index.html#blogs"><strong>← Back to Blogs</strong></a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5 text-center">
+      <p>© 2026 Mashrur Hossain Khan</p>
+    </footer>
+
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

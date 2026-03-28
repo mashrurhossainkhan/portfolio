@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Understanding AWS EBS and Snapshots</title>
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --heading: #0f172a;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --border: #e5e7eb;
+        --code-bg: #111827;
+        --code-text: #f9fafb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.8;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border-bottom: 1px solid var(--border);
+        padding: 60px 0 40px;
+      }
+
+      .hero h1 {
+        margin: 0 0 16px;
+        font-size: 2.4rem;
+        line-height: 1.2;
+        color: var(--heading);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .article-card {
+        background: var(--card);
+        margin: 40px auto 60px;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      h2 {
+        margin-top: 36px;
+        margin-bottom: 12px;
+        color: var(--heading);
+        font-size: 1.6rem;
+      }
+
+      h3 {
+        margin-top: 28px;
+        margin-bottom: 10px;
+        color: var(--heading);
+        font-size: 1.15rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 20px 22px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 10px;
+      }
+
+      .highlight-box {
+        background: var(--accent-soft);
+        border-left: 4px solid var(--accent);
+        padding: 18px 20px;
+        border-radius: 10px;
+        margin: 24px 0;
+      }
+
+      .highlight-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 16px 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 18px 0 24px;
+      }
+
+      code {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      blockquote {
+        margin: 24px 0;
+        padding: 16px 20px;
+        border-left: 4px solid var(--accent);
+        background: #f8fafc;
+        color: var(--heading);
+        font-style: italic;
+        border-radius: 8px;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 32px 0;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: white;
+        background: var(--accent);
+        padding: 12px 20px;
+        border-radius: 999px;
+        font-weight: bold;
+        transition: 0.2s ease;
+      }
+
+      .back-link:hover {
+        opacity: 0.9;
+      }
+
+      @media (max-width: 768px) {
+        .hero {
+          padding: 44px 0 30px;
+        }
+
+        .hero h1 {
+          font-size: 1.9rem;
+        }
+
+        .article-card {
+          padding: 24px 20px;
+          border-radius: 14px;
+        }
+
+        h2 {
+          font-size: 1.35rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>Understanding AWS EBS and Snapshots</h1>
+        <p>
+          A hands-on learning note from my AWS journey — covering EBS volumes,
+          storage types, attaching new disks to EC2, mounting them in Linux, and
+          using snapshots for backup and recovery. Based on the instructor’s
+          walkthrough of EBS volumes, formatting, mounting, and snapshot-based
+          recovery.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <article class="article-card">
+        <p>
+          While learning EC2, one thing became very clear: compute is only one
+          part of the system. Storage is just as important. That is where
+          <strong>AWS Elastic Block Store (EBS)</strong> comes in. EBS is the
+          storage layer attached to EC2 instances, and understanding it made the
+          whole idea of cloud servers feel much more practical and real.
+        </p>
+
+        <h2>What is EBS?</h2>
+        <p>
+          EBS, or Elastic Block Store, is basically a
+          <strong>virtual hard disk</strong> for EC2. When an EC2 instance is
+          launched, the operating system lives on an EBS volume. That default
+          disk is often called the <strong>root volume</strong>. EBS can also be
+          used to store extra data such as website files, logs, or database
+          content.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            Simple way to remember it:
+            <strong>EC2 is the computer, EBS is the hard disk.</strong>
+          </p>
+        </div>
+
+        <p>
+          Another important point is that EBS volumes are created inside a
+          specific <strong>Availability Zone</strong>, and the EC2 instance must
+          be in the same zone to attach that volume. AWS automatically
+          replicates EBS volume data within that same zone for reliability, but
+          not across multiple zones by default.
+        </p>
+
+        <h2>EBS Volumes and Snapshots</h2>
+        <p>EBS mainly gives two things:</p>
+
+        <ul>
+          <li><strong>Volume</strong> → the actual virtual disk</li>
+          <li><strong>Snapshot</strong> → backup of that disk</li>
+        </ul>
+
+        <p>
+          This makes EBS very useful not only for storing data, but also for
+          backing it up and restoring it later if something goes wrong.
+        </p>
+
+        <h2>Types of EBS Storage</h2>
+        <p>
+          AWS offers different volume types depending on performance and use
+          case. The main categories are:
+        </p>
+
+        <ul>
+          <li>
+            <strong>General Purpose SSD (gp3 / gp2)</strong> — good for most
+            workloads like web servers and normal application storage
+          </li>
+          <li>
+            <strong>Provisioned IOPS SSD</strong> — used when databases need
+            very high input/output performance
+          </li>
+          <li>
+            <strong>Throughput Optimized HDD</strong> — good for big data and
+            large processing workloads
+          </li>
+          <li>
+            <strong>Cold HDD</strong> — lower cost for data accessed less often
+          </li>
+          <li>
+            <strong>Magnetic</strong> — older generation, mainly for cheap
+            archive or backup-style use cases
+          </li>
+        </ul>
+
+        <p>
+          For general workloads, the most recommended one is usually
+          <strong>gp3</strong> because it gives a good balance of performance
+          and cost.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step-by-Step: Adding a New EBS Volume</h2>
+        <p>
+          One of the key parts of the lesson was learning how to attach a
+          separate EBS volume to an EC2 instance and use it for a specific
+          folder. In the lab, the goal was to create a separate disk for website
+          images. The same logic can be used for logs, uploads, or database
+          files.
+        </p>
+
+        <h3>Step 1: Launch an EC2 Instance</h3>
+        <p>
+          Using Amazon Linux 2023 with the default 8 GB gp3 root volume. That
+          default disk stored the operating system and initial website data.
+        </p>
+
+        <h3>Step 2: Check Current Disks</h3>
+        <p>
+          Inside Linux, the current disks and partitions can be checked using:
+        </p>
+
+        <pre><code>fdisk -l
+df -h</code></pre>
+
+        <p>
+          <code>fdisk -l</code> shows the available disks and partitions, while
+          <code>df -h</code> shows which partitions are actually mounted and in
+          use. This is an important distinction.
+        </p>
+
+        <h3>Step 3: Create a New Volume in AWS</h3>
+        <p>A new volume was created from the EC2 Volumes section with:</p>
+
+        <ul>
+          <li>Type: <strong>gp3</strong></li>
+          <li>Size: <strong>5 GB</strong></li>
+          <li>Availability Zone: same as the instance</li>
+        </ul>
+
+        <p>
+          Matching the zone is critical. If the instance is in one zone and the
+          volume is created in another, the volume cannot be attached.
+        </p>
+
+        <h3>Step 4: Attach the Volume</h3>
+        <p>
+          After creation, the new volume was attached to the instance. AWS lets
+          us choose a device name such as <code>/dev/sdf</code>, but once Linux
+          sees the device, it often appears with a name like
+          <code>/dev/xvdf</code>.
+        </p>
+
+        <h3>Step 5: Create a Partition</h3>
+        <p>
+          After attaching the disk, it exists physically but is still raw. The
+          next step is to create a partition:
+        </p>
+
+        <pre><code>fdisk /dev/xvdf</code></pre>
+
+        <p>The flow used was:</p>
+
+        <ul>
+          <li><code>n</code> → new partition</li>
+          <li><code>p</code> → primary partition</li>
+          <li><code>1</code> → partition number</li>
+          <li>Press Enter for default first sector</li>
+          <li>Press Enter for full disk usage</li>
+          <li><code>w</code> → write changes</li>
+        </ul>
+
+        <p>
+          After that, a partition like <code>/dev/xvdf1</code> becomes
+          available.
+        </p>
+
+        <h3>Step 6: Format the Partition</h3>
+        <p>
+          A partition must be formatted before files can be stored on it. In the
+          lesson, one example used <strong>ext4</strong>:
+        </p>
+
+        <pre><code>mkfs.ext4 /dev/xvdf1</code></pre>
+
+        <p>
+          Another example later used <strong>xfs</strong> for a database
+          partition. The idea is the same: formatting prepares the storage for a
+          filesystem.
+        </p>
+
+        <h3>Step 7: Mount the Volume</h3>
+        <p>
+          Once formatted, the partition can be mounted to a directory. In the
+          web example, it was mounted to the images folder:
+        </p>
+
+        <pre><code>mount /dev/xvdf1 /var/www/html/images</code></pre>
+
+        <p>
+          Mounting basically means connecting the disk to a folder. From that
+          moment, files placed in that folder are stored on the new EBS volume,
+          not on the root disk.
+        </p>
+
+        <h3>Step 8: Make the Mount Permanent</h3>
+        <p>
+          A temporary mount disappears after reboot. To keep it permanently, the
+          mount entry must be added to <code>/etc/fstab</code>.
+        </p>
+
+        <pre><code>/dev/xvdf1 /var/www/html/images ext4 defaults 0 0</code></pre>
+
+        <p>
+          After editing the file, this command checks and applies the mount:
+        </p>
+
+        <pre><code>mount -a</code></pre>
+
+        <p>
+          If there is no error, the entry is valid and the mount will survive
+          reboots.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Using EBS for Database</h2>
+        <p>
+          Instead of installing the database first and moving data later, the
+          new disk was created and mounted to
+          <code>/var/lib/mysql</code> before starting the database service. That
+          way, database files were written directly to the separate partition
+          from the start.
+        </p>
+
+        <pre><code>mkdir /var/lib/mysql
+mount /dev/xvdh1 /var/lib/mysql
+dnf install mariadb105-server -y
+systemctl start mariadb</code></pre>
+
+        <p>
+          This showed a very real system administration idea: keep application
+          data on a dedicated disk, not mixed with the operating system.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>What is an EBS Snapshot?</h2>
+        <p>
+          A snapshot is a backup of an EBS volume. It is one of the most useful
+          features of EBS because it allows storage to be restored or moved
+          later.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            Easy way to remember it:
+            <strong>Volume = disk, Snapshot = backup of that disk.</strong>
+          </p>
+        </div>
+
+        <p>
+          The first snapshot copies the full data. Later snapshots are
+          incremental, which means only changes are stored. That makes them very
+          useful for regular backup strategies.
+        </p>
+
+        <h2>Why Snapshots Matter</h2>
+        <p>Snapshots are not only for backup. They are useful for:</p>
+
+        <ul>
+          <li>Recovering lost or corrupted data</li>
+          <li>Creating a new volume from existing data</li>
+          <li>Changing volume type during migration</li>
+          <li>Increasing storage while restoring</li>
+          <li>Moving data to another Availability Zone</li>
+          <li>Copying data to another region</li>
+          <li>Sharing data with another AWS account</li>
+        </ul>
+
+        <p>
+          That makes snapshot one of the most powerful storage features in EC2
+          operations.
+        </p>
+
+        <h2>Step-by-Step: Snapshot Recovery Flow</h2>
+        <p>
+          The lesson simulated database corruption by deleting the data inside
+          <code>/var/lib/mysql</code>. After that, MariaDB failed to start,
+          which created the perfect recovery scenario.
+        </p>
+
+        <h3>Step 1: Create a Snapshot</h3>
+        <p>
+          Before corruption, a snapshot of the database volume was created from
+          the AWS Console. This snapshot became the backup point.
+        </p>
+
+        <h3>Step 2: Simulate Data Loss</h3>
+        <p>
+          The data directory was cleared, and the database service failed on
+          restart. This showed exactly why snapshots matter.
+        </p>
+
+        <h3>Step 3: Detach the Corrupted Volume</h3>
+        <p>
+          The corrupted volume was unmounted and detached from the instance.
+          Then a new volume was created directly from the snapshot.
+        </p>
+
+        <h3>Step 4: Create a New Volume from Snapshot</h3>
+        <p>
+          This is where recovery becomes powerful. When creating a new volume
+          from a snapshot, AWS allows changes such as:
+        </p>
+
+        <ul>
+          <li>Increasing size</li>
+          <li>Changing volume type</li>
+          <li>Changing Availability Zone</li>
+          <li>Enabling encryption</li>
+        </ul>
+
+        <p>So recovery can also become a migration or upgrade opportunity.</p>
+
+        <h3>Step 5: Reattach and Mount</h3>
+        <p>
+          The recovered volume was attached back to the instance and mounted to
+          the same folder. As soon as that happened, the data was visible again.
+          Then MariaDB was restarted successfully.
+        </p>
+
+        <pre><code>Snapshot → New Volume → Attach → Mount → Restore</code></pre>
+
+        <blockquote>
+          One of the biggest lessons here was this: when a disk becomes damaged,
+          we usually do not try to “repair” it directly. We replace it with a
+          new one created from a reliable backup.
+        </blockquote>
+
+        <h2>Other Snapshot Features</h2>
+        <p>The lesson also highlighted a few extra snapshot capabilities:</p>
+
+        <ul>
+          <li>
+            <strong>Copy snapshot to another region</strong> — useful for moving
+            EBS data across regions
+          </li>
+          <li>
+            <strong>Share snapshot with another AWS account</strong> — useful
+            when data needs to move between accounts
+          </li>
+          <li>
+            <strong>Create image from snapshot</strong> — later useful in AMI
+            creation workflows
+          </li>
+        </ul>
+
+        <p>
+          This means snapshots are not just for backup. They are also useful for
+          migration, sharing, and operational flexibility.
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>What I Really Learned from EBS</h2>
+        <p>
+          This lesson taught me much more than “how to add storage.” It taught
+          me how cloud storage works operationally:
+        </p>
+
+        <ul>
+          <li>Volumes must be planned with Availability Zones in mind</li>
+          <li>New disks are raw until partitioned and formatted</li>
+          <li>Mount points decide where the data actually goes</li>
+          <li>Separate disks make applications cleaner and safer</li>
+          <li>Snapshots create a strong backup and recovery strategy</li>
+        </ul>
+
+        <p>
+          It also made Linux storage concepts much easier to connect with AWS
+          concepts. Commands like <code>fdisk</code>, <code>mkfs</code>,
+          <code>mount</code>, and <code>fstab</code> finally felt meaningful
+          because they were tied directly to a real cloud use case.
+        </p>
+
+        <h2>Final Thoughts</h2>
+        <p>
+          EBS turned out to be one of the most practical AWS services I’ve
+          learned so far. It connects cloud storage with real system
+          administration. Instead of treating storage like a black box, this
+          lesson showed me how to create, attach, partition, format, mount,
+          backup, and recover it step by step.
+        </p>
+
+        <p>
+          For me, the biggest takeaway was that cloud storage is not just about
+          adding space. It is about designing storage properly, separating data
+          cleanly, and always having a recovery plan through snapshots.
+        </p>
+
+        <div class="footer-note">
+          This blog is part of my hands-on DevOps and AWS learning journey,
+          where I document technical concepts in a simple and practical way as I
+          build stronger cloud fundamentals.
+        </div>
+
+        <a class="back-link" href="blog.html">← Back to All Blogs</a>
+      </article>
+    </main>
+  </body>
+</html>

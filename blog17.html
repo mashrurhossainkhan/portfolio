@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on deploying a multi-tier vProfile application to AWS using EC2, S3, Route 53, Load Balancer, and Auto Scaling."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>AWS Lift and Shift Project | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- MENU -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- BLOG HEADER -->
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>AWS Lift and Shift Project with vProfile</h1>
+            <p>
+              A practical multi-tier cloud deployment project where I migrated
+              the vProfile application from a local setup to AWS using EC2, S3,
+              Route 53, Application Load Balancer, and Auto Scaling.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              One of the most useful hands-on projects I worked on while
+              learning AWS was deploying the vProfile application using a
+              lift-and-shift strategy. This project helped me connect many AWS
+              services together in a real application flow instead of learning
+              them as separate isolated services.
+            </p>
+
+            <p>
+              In simple words, lift and shift means moving an application from a
+              local or traditional setup to the cloud without redesigning the
+              whole application architecture. The goal is to get the same
+              application running on cloud infrastructure first, and then later
+              optimize or re-architect it if needed.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> keep the application architecture
+              mostly the same, but move the infrastructure to AWS so it becomes
+              easier to manage, scale, and automate.
+            </div>
+
+            <h2>What the Application Looks Like</h2>
+            <p>
+              The vProfile application is not a single-server setup. It is a
+              multi-tier application with different components working together.
+            </p>
+
+            <ul>
+              <li>Tomcat for the application layer</li>
+              <li>MySQL for the database</li>
+              <li>RabbitMQ for messaging</li>
+              <li>Memcache for caching</li>
+            </ul>
+
+            <p>
+              In a local environment, these services can run on separate virtual
+              machines. In this AWS project, I moved the same structure to the
+              cloud and connected everything using AWS networking and managed
+              services where appropriate.
+            </p>
+
+            <h2>Architecture on AWS</h2>
+            <p>The architecture I built on AWS looked like this:</p>
+
+            <div class="code-block">
+              User ↓ Domain / DNS ↓ Application Load Balancer ↓ Tomcat App
+              Server(s) ↓ Backend Services - MySQL - RabbitMQ - Memcache
+            </div>
+
+            <p>This setup was supported by several AWS services:</p>
+
+            <ul>
+              <li>EC2 for compute instances</li>
+              <li>S3 for storing the application artifact</li>
+              <li>Route 53 private hosted zone for internal DNS</li>
+              <li>ACM for HTTPS certificate management</li>
+              <li>Application Load Balancer for traffic routing</li>
+              <li>Auto Scaling Group for the app layer</li>
+            </ul>
+
+            <h2>Step 1: Creating Security Groups and Key Pair</h2>
+            <p>
+              The first major setup step was networking and access control. I
+              created separate security groups for:
+            </p>
+
+            <ul>
+              <li>Load Balancer</li>
+              <li>Tomcat application instance</li>
+              <li>Backend services</li>
+            </ul>
+
+            <p>
+              This was important because each layer should only talk to the
+              layer it actually needs. For example:
+            </p>
+
+            <ul>
+              <li>Internet traffic should reach only the load balancer</li>
+              <li>Load balancer should talk to Tomcat on port 8080</li>
+              <li>
+                Tomcat should talk to MySQL, Memcache, and RabbitMQ only on
+                their required ports
+              </li>
+            </ul>
+
+            <p>
+              I also created a key pair so I could securely SSH into the EC2
+              instances for verification and troubleshooting.
+            </p>
+
+            <h2>Step 2: Launching the Backend and App Instances</h2>
+            <p>I launched four EC2 instances:</p>
+
+            <ul>
+              <li><strong>db01</strong> for MySQL</li>
+              <li><strong>mc01</strong> for Memcache</li>
+              <li><strong>rmq01</strong> for RabbitMQ</li>
+              <li><strong>app01</strong> for Tomcat</li>
+            </ul>
+
+            <p>
+              Instead of manually logging into each instance and installing
+              software one by one, I used <strong>user data scripts</strong>.
+              These scripts automated the initial setup during instance launch.
+            </p>
+
+            <p>
+              For the backend servers, I used Amazon Linux 2023. For the Tomcat
+              app server, I used Ubuntu 24 because installing Tomcat from the
+              package repository was more straightforward in that environment.
+            </p>
+
+            <div class="highlight-box">
+              <strong>What I liked about this step:</strong> it showed me how
+              automation reduces repeated manual setup work and makes
+              infrastructure more reproducible.
+            </div>
+
+            <h2>Step 3: Setting Up Internal DNS with Route 53</h2>
+            <p>
+              The application needs to connect to backend services by name. In
+              the configuration file, the app expects hostnames like:
+            </p>
+
+            <div class="code-block">
+              db01.vprofile.in mc01.vprofile.in rmq01.vprofile.in
+            </div>
+
+            <p>
+              Instead of hardcoding IP addresses in the application
+              configuration, I created a <strong>private hosted zone</strong> in
+              Route 53 and mapped those names to the private IP addresses of the
+              backend EC2 instances.
+            </p>
+
+            <p>
+              This is much better than using raw IPs because if an instance gets
+              replaced later, DNS can be updated without changing the
+              application code itself.
+            </p>
+
+            <h2>Step 4: Building the Artifact Locally</h2>
+            <p>
+              After the infrastructure was ready, I built the application
+              artifact on my own computer. For this step, I needed:
+            </p>
+
+            <ul>
+              <li>JDK 17</li>
+              <li>Maven</li>
+              <li>AWS CLI</li>
+            </ul>
+
+            <p>
+              I updated the application configuration to make sure it pointed to
+              the correct private DNS names, then built the artifact using:
+            </p>
+
+            <div class="code-block">mvn install</div>
+
+            <p>This generated the WAR file inside the target directory.</p>
+
+            <h2>Step 5: Uploading the Artifact to S3</h2>
+            <p>
+              I created an S3 bucket to store the built WAR file. To upload from
+              my laptop, I created an IAM user with S3 access, generated access
+              keys, configured the AWS CLI locally, and then uploaded the
+              artifact.
+            </p>
+
+            <div class="code-block">
+              aws s3 cp target/vprofile-v2.war s3://your-bucket-name
+            </div>
+
+            <p>
+              This step made the artifact available in a central place so the
+              app server could fetch it later.
+            </p>
+
+            <h2>Step 6: Deploying the Artifact to Tomcat</h2>
+            <p>
+              On the Tomcat EC2 instance, I attached an IAM role with S3 access.
+              Then I installed AWS CLI on the app server, downloaded the WAR
+              file from S3, and deployed it into Tomcat.
+            </p>
+
+            <p>The deployment steps included:</p>
+
+            <ul>
+              <li>Stopping Tomcat</li>
+              <li>Removing the default ROOT app</li>
+              <li>Copying the WAR file as ROOT.war</li>
+              <li>Starting Tomcat again</li>
+            </ul>
+
+            <p>
+              Once Tomcat extracted the WAR, the application became available on
+              port 8080.
+            </p>
+
+            <h2>Step 7: Creating the Application Load Balancer</h2>
+            <p>
+              Next, I created a target group pointing to the Tomcat app server
+              on port 8080 and configured health checks on the same port.
+            </p>
+
+            <p>
+              Then I created an Application Load Balancer and attached it to the
+              correct security group. The load balancer was configured to
+              forward traffic to the target group.
+            </p>
+
+            <p>
+              I also added HTTPS by attaching an ACM certificate to the load
+              balancer listener.
+            </p>
+
+            <div class="code-block">User → HTTPS → Load Balancer → Tomcat</div>
+
+            <h2>Step 8: Verifying the Full Application</h2>
+            <p>
+              After the load balancer was active and the target became healthy,
+              I accessed the website through the load balancer URL and performed
+              full application checks.
+            </p>
+
+            <ul>
+              <li>Login success confirmed database connectivity</li>
+              <li>
+                RabbitMQ queue creation confirmed message broker connectivity
+              </li>
+              <li>Repeated user access confirmed Memcache integration</li>
+            </ul>
+
+            <p>
+              This was one of the most satisfying parts of the project because
+              it proved that the full end-to-end application stack was actually
+              working on AWS.
+            </p>
+
+            <h2>Step 9: Converting the App Layer into Auto Scaling</h2>
+            <p>
+              After the manual app server worked correctly, I created an AMI
+              from the app instance and used it in a launch template.
+            </p>
+
+            <p>
+              Then I created an Auto Scaling Group for the app layer. This meant
+              the application instances could now:
+            </p>
+
+            <ul>
+              <li>Scale out when load increases</li>
+              <li>Scale in when load decreases</li>
+              <li>Replace unhealthy instances automatically</li>
+            </ul>
+
+            <p>
+              I also enabled target group stickiness because the vProfile
+              application handles session-related behavior in a way that works
+              better when the same user continues hitting the same instance.
+            </p>
+
+            <h2>What This Project Taught Me</h2>
+            <p>
+              This project taught me much more than just launching a few EC2
+              instances. It helped me understand how multiple AWS services work
+              together as part of one application deployment flow.
+            </p>
+
+            <ul>
+              <li>How security groups enforce traffic flow between layers</li>
+              <li>Why internal DNS is important for service communication</li>
+              <li>
+                How artifacts move from local machine to cloud infrastructure
+              </li>
+              <li>How load balancing and health checks work together</li>
+              <li>Why Auto Scaling matters for production-style systems</li>
+            </ul>
+
+            <div class="highlight-box">
+              <strong>Big takeaway:</strong> this was not just about “hosting an
+              app.” It was about understanding how application deployment,
+              networking, scaling, and automation fit together in a cloud
+              environment.
+            </div>
+
+            <h2>Why This Was a Lift-and-Shift Project</h2>
+            <p>
+              This project is called lift and shift because the application
+              architecture itself was not redesigned. The same core components
+              were moved from a local or VM-based setup to AWS.
+            </p>
+
+            <p>
+              The next level beyond this would be re-architecting the
+              application using more managed cloud-native services. But before
+              doing that, this project gave a strong understanding of how a
+              traditional multi-tier application behaves in AWS infrastructure.
+            </p>
+
+            <h2>Final Thoughts</h2>
+            <p>
+              For me, this was one of the most valuable AWS projects because it
+              tied together many concepts that are often learned separately:
+              EC2, S3, Route 53, IAM, Load Balancer, ACM, and Auto Scaling.
+            </p>
+
+            <p>
+              It also gave me confidence that I can follow a full deployment
+              flow, troubleshoot integration issues, and think more practically
+              about how real-world applications are migrated and run in the
+              cloud.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Understanding AWS Load Balancers, AMIs, and Launch Templates</title>
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --heading: #0f172a;
+        --accent: #2563eb;
+        --accent-soft: #dbeafe;
+        --border: #e5e7eb;
+        --code-bg: #111827;
+        --code-text: #f9fafb;
+        --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        line-height: 1.8;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border-bottom: 1px solid var(--border);
+        padding: 60px 0 40px;
+      }
+
+      .hero h1 {
+        margin: 0 0 16px;
+        font-size: 2.4rem;
+        line-height: 1.2;
+        color: var(--heading);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .article-card {
+        background: var(--card);
+        margin: 40px auto 60px;
+        padding: 40px;
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      h2 {
+        margin-top: 36px;
+        margin-bottom: 12px;
+        color: var(--heading);
+        font-size: 1.6rem;
+      }
+
+      h3 {
+        margin-top: 28px;
+        margin-bottom: 10px;
+        color: var(--heading);
+        font-size: 1.15rem;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 20px 22px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 10px;
+      }
+
+      .highlight-box {
+        background: var(--accent-soft);
+        border-left: 4px solid var(--accent);
+        padding: 18px 20px;
+        border-radius: 10px;
+        margin: 24px 0;
+      }
+
+      .highlight-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        padding: 16px 18px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 18px 0 24px;
+      }
+
+      code {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      blockquote {
+        margin: 24px 0;
+        padding: 16px 20px;
+        border-left: 4px solid var(--accent);
+        background: #f8fafc;
+        color: var(--heading);
+        font-style: italic;
+        border-radius: 8px;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 32px 0;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        text-decoration: none;
+        color: white;
+        background: var(--accent);
+        padding: 12px 20px;
+        border-radius: 999px;
+        font-weight: bold;
+        transition: 0.2s ease;
+      }
+
+      .back-link:hover {
+        opacity: 0.9;
+      }
+
+      @media (max-width: 768px) {
+        .hero {
+          padding: 44px 0 30px;
+        }
+
+        .hero h1 {
+          font-size: 1.9rem;
+        }
+
+        .article-card {
+          padding: 24px 20px;
+          border-radius: 14px;
+        }
+
+        h2 {
+          font-size: 1.35rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <h1>Understanding AWS Load Balancers, AMIs, and Launch Templates</h1>
+        <p>
+          A practical lesson from my AWS journey on why load balancers matter,
+          how they distribute traffic across multiple servers, and how AMIs and
+          launch templates make scaling faster and more consistent.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <article class="article-card">
+        <p>
+          One of the biggest shifts in cloud learning happens when moving from
+          “one server” thinking to “multiple servers behind one endpoint.” That
+          is exactly what this lesson helped me understand. It introduced the
+          real purpose of <strong>AWS Load Balancers</strong>, and along the way
+          it also connected two other important ideas: <strong>AMIs</strong> and
+          <strong>Launch Templates</strong>.
+        </p>
+
+        <h2>Why a Single Server is Not Enough</h2>
+        <p>
+          At the beginning of many cloud projects, one web server feels enough.
+          But in real-world systems, one server becomes a problem very quickly.
+          If traffic grows, the server can become overloaded. If maintenance is
+          needed, users may be affected. If the server goes down, the entire
+          application becomes unavailable.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            The real solution is not just “buy a bigger server.” A better
+            solution is to run <strong>multiple web servers</strong> and place a
+            <strong>load balancer</strong> in front of them.
+          </p>
+        </div>
+
+        <p>
+          This creates a much stronger setup. Traffic can be distributed,
+          servers can be updated one by one, and the system becomes easier to
+          scale out or scale in depending on demand.
+          :contentReference[oaicite:0]{index=0}
+        </p>
+
+        <h2>What is a Load Balancer?</h2>
+        <p>
+          A load balancer is a service that receives traffic from users and then
+          forwards that traffic to one or more backend servers. From the user’s
+          perspective, there is only one endpoint. Behind the scenes, the load
+          balancer decides where the request should go.
+          :contentReference[oaicite:1]{index=1}
+        </p>
+
+        <pre><code>User → Load Balancer → Server 1
+                      → Server 2
+                      → Server 3</code></pre>
+
+        <p>
+          This is why load balancers are so useful. They give users a single
+          front door while letting the infrastructure stay distributed in the
+          background.
+        </p>
+
+        <h2>Frontend Port and Backend Port</h2>
+        <p>
+          One useful idea from the lesson was understanding frontend and backend
+          ports. A user usually accesses the load balancer on a frontend port
+          like <strong>80</strong> for HTTP or <strong>443</strong> for HTTPS.
+          The load balancer then forwards the request to the backend servers on
+          their listening port, often again port 80 for a web service.
+          :contentReference[oaicite:2]{index=2}
+        </p>
+
+        <p>
+          So the load balancer works like a proxy between users and servers. It
+          is not the actual application server itself. It sits in the middle and
+          handles request distribution. :contentReference[oaicite:3]{index=3}
+        </p>
+
+        <h2>AWS Elastic Load Balancer Types</h2>
+        <p>
+          AWS provides managed load balancers under the name
+          <strong>Elastic Load Balancer (ELB)</strong>. The lesson introduced
+          four types:
+        </p>
+
+        <ul>
+          <li><strong>Classic Load Balancer</strong></li>
+          <li><strong>Application Load Balancer (ALB)</strong></li>
+          <li><strong>Network Load Balancer (NLB)</strong></li>
+          <li><strong>Gateway Load Balancer</strong></li>
+        </ul>
+
+        <h3>Application Load Balancer (ALB)</h3>
+        <p>
+          This is the most important one for web applications. ALB works at
+          <strong>Layer 7</strong>, which means it understands HTTP and HTTPS
+          traffic. It can even route requests differently based on the URL path.
+          For example:
+        </p>
+
+        <pre><code>example.com        → Web servers
+example.com/api    → API servers
+example.com/videos → Another backend group</code></pre>
+
+        <p>
+          That makes ALB the most flexible and commonly used option for web apps
+          and APIs. :contentReference[oaicite:4]{index=4}
+        </p>
+
+        <h3>Network Load Balancer (NLB)</h3>
+        <p>
+          NLB works at <strong>Layer 4</strong>. It focuses on IP address and
+          port rather than HTTP-level intelligence. It is designed for very high
+          performance and can handle extremely large request volumes. It also
+          provides a static IP in some use cases.
+          :contentReference[oaicite:5]{index=5}
+        </p>
+
+        <h3>Classic and Gateway Load Balancers</h3>
+        <p>
+          Classic Load Balancer is an older, simpler type, while Gateway Load
+          Balancer is more advanced and related to network security appliances
+          such as firewalls and intrusion detection tools. Those were mentioned
+          for awareness, but the real focus in this learning path is clearly the
+          Application Load Balancer. :contentReference[oaicite:6]{index=6}
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step 1: Launch the First Web Server</h2>
+        <p>
+          The practical part starts by launching one EC2 instance and installing
+          a website on it. In the lesson, a website template from Tooplate was
+          deployed using a user data script. The instructor used a Linux AMI,
+          such as Amazon Linux 2023, with a small free-tier instance type like
+          <strong>t2.micro</strong>. :contentReference[oaicite:7]{index=7}
+        </p>
+
+        <p>
+          During this step, the instance gets a key pair and a security group.
+          Port 22 is opened from the user’s own IP for SSH, and port 80 is also
+          temporarily allowed for testing. After launch, the website is checked
+          using the public IP of the instance.
+          :contentReference[oaicite:8]{index=8}
+        </p>
+
+        <h2>Why Build One Server First?</h2>
+        <p>
+          This first server becomes the <strong>base server</strong>. It already
+          has the website, configuration, and application setup working
+          correctly. Instead of repeating that setup manually again and again,
+          AWS gives a much smarter option: create an image from it.
+        </p>
+
+        <h2>Step 2: Create an AMI</h2>
+        <p>
+          After the website is running properly, the next step is to create an
+          <strong>AMI (Amazon Machine Image)</strong>. This is one of the most
+          useful EC2 concepts.
+        </p>
+
+        <div class="highlight-box">
+          <p>
+            A snapshot is just a backup of the EBS disk. An
+            <strong>AMI is more than that</strong> — it includes the snapshot
+            plus the instance metadata needed to launch new instances.
+          </p>
+        </div>
+
+        <p>In the lesson, the instance is selected, then:</p>
+
+        <pre><code>Actions → Image and templates → Create image</code></pre>
+
+        <p>
+          The image gets a name, and AWS begins building it. While creating the
+          AMI, AWS also creates a snapshot of the EBS volume behind the
+          instance. After a few minutes, the AMI becomes available and can be
+          used to launch new instances. :contentReference[oaicite:9]{index=9}
+        </p>
+
+        <h2>Why AMI Matters</h2>
+        <p>
+          AMI is what makes replication easy. If I need two more servers that
+          behave exactly like the first one, I do not need to reinstall Apache,
+          re-copy the website, or re-run all the setup manually. I can just
+          launch new instances from the AMI.
+        </p>
+
+        <blockquote>
+          AMI is basically the reusable image of a working server.
+        </blockquote>
+
+        <h2>Useful AMI Features</h2>
+        <p>The lesson also showed a few advanced but important AMI features:</p>
+
+        <ul>
+          <li>
+            <strong>Copy AMI to another region</strong> — useful for migration
+            or disaster recovery
+          </li>
+          <li>
+            <strong>Share AMI with another AWS account</strong> — useful when
+            deploying across accounts
+          </li>
+          <li>
+            <strong>Deregister AMI when not needed</strong> — important cleanup
+            step
+          </li>
+        </ul>
+
+        <p>
+          That means AMI is not only a scaling tool. It is also helpful for
+          region-to-region movement, account sharing, and standardized image
+          management. :contentReference[oaicite:10]{index=10}
+        </p>
+
+        <div class="section-divider"></div>
+
+        <h2>Step 3: Understand Launch Templates</h2>
+        <p>
+          Launching instances manually from an AMI works, but it still requires
+          choosing instance type, key pair, security group, and other settings
+          every time. For small experiments that is okay, but in real DevOps
+          work it becomes repetitive and error-prone.
+        </p>
+
+        <p>That is where <strong>Launch Templates</strong> come in.</p>
+
+        <div class="highlight-box">
+          <p>
+            A launch template is a saved EC2 launch configuration. It stores the
+            settings needed to launch identical instances quickly and
+            consistently.
+          </p>
+        </div>
+
+        <p>
+          Instead of repeating everything manually, the template remembers the
+          AMI, instance type, security settings, and other launch details.
+          According to the lesson, this helps streamline, simplify, and
+          standardize instance launches. :contentReference[oaicite:11]{index=11}
+        </p>
+
+        <h2>Why Launch Templates Matter for Load Balancing</h2>
+        <p>
+          A load balancer is most useful when multiple backend instances behave
+          the same way. Launch templates help achieve exactly that. They make it
+          easy to create replicas quickly, which is critical when building a
+          cluster of web servers behind an ALB.
+        </p>
+
+        <pre><code>Create working EC2
+        ↓
+Create AMI
+        ↓
+Save Launch Template
+        ↓
+Launch multiple identical servers
+        ↓
+Put them behind a Load Balancer</code></pre>
+
+        <h2>How the Full Architecture Starts to Make Sense</h2>
+        <p>
+          Once I looked at the lesson this way, the architecture became much
+          clearer:
+        </p>
+
+        <pre><code>User
+  ↓
+Load Balancer
+  ↓
+Web Server 1
+Web Server 2
+Web Server 3</code></pre>
+
+        <p>
+          The load balancer gives the single entry point. The AMI creates the
+          consistent server image. The launch template makes repeated launches
+          easy. Together, these three ideas form the base of scalable AWS web
+          infrastructure.
+        </p>
+
+        <h2>Security Idea to Keep in Mind</h2>
+        <p>
+          One subtle but important point in the lesson is that port 80 was
+          opened only temporarily for testing the first instance directly.
+          Later, once the load balancer is involved, security groups usually
+          need to be adjusted so that the backend web servers are not just
+          openly exposed to everyone. Instead, the intended pattern is that
+          users access the load balancer, and the load balancer communicates
+          with the backend servers. :contentReference[oaicite:12]{index=12}
+        </p>
+
+        <h2>What I Really Learned</h2>
+        <p>
+          This lesson was not just about one AWS service. It tied together
+          multiple important cloud ideas:
+        </p>
+
+        <ul>
+          <li>Why one server is not enough in real applications</li>
+          <li>How a load balancer creates one public entry point</li>
+          <li>Why ALB is the preferred option for web traffic</li>
+          <li>How AMI turns one working server into a reusable image</li>
+          <li>How launch templates help standardize and scale faster</li>
+        </ul>
+
+        <p>
+          It also made scaling feel much less abstract. Instead of hearing
+          “horizontal scaling” as theory, I could now see the actual path: build
+          once, image it, template it, replicate it, and then distribute traffic
+          through a load balancer.
+        </p>
+
+        <h2>Final Thoughts</h2>
+        <p>
+          For me, this was one of the most practical AWS lessons so far. It
+          connected web hosting, scaling, traffic management, and reusable
+          infrastructure into one clear picture.
+        </p>
+
+        <p>
+          The biggest insight was that a load balancer alone is not the whole
+          story. It becomes powerful only when paired with properly prepared
+          backend instances. That is why AMIs and launch templates matter so
+          much. They are what make scaling consistent and manageable.
+        </p>
+
+        <p>
+          This lesson felt like a real bridge between basic EC2 usage and actual
+          cloud architecture thinking.
+        </p>
+
+        <div class="footer-note">
+          This blog is part of my hands-on DevOps and AWS learning journey,
+          where I document technical concepts in a simple and practical way as I
+          build stronger cloud fundamentals.
+        </div>
+
+        <a class="back-link" href="blog.html">← Back to All Blogs</a>
+      </article>
+    </main>
+  </body>
+</html>

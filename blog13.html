@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on understanding AWS Auto Scaling, launch templates, load balancers, target groups, and scaling policies from a DevOps learning perspective."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Understanding AWS Auto Scaling | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- MENU -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"
+          ><i class="uil uil-user"></i> Mashrur</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- BLOG HEADER -->
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Understanding AWS Auto Scaling</h1>
+            <p>
+              A practical breakdown of how Auto Scaling works in AWS using EC2,
+              Launch Templates, Load Balancers, Target Groups, and CloudWatch —
+              explained from a real DevOps learning perspective.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              When I first started learning AWS Auto Scaling, it sounded like
+              one of those services that would be hard to understand. But once I
+              connected it with EC2, Load Balancer, and CloudWatch, it became
+              much easier. In fact, Auto Scaling is one of those AWS services
+              that brings many core concepts together in a very practical way.
+            </p>
+
+            <p>
+              In this blog, I want to explain Auto Scaling in the same simple
+              way I understood it during my learning journey.
+            </p>
+
+            <h2>What is Auto Scaling?</h2>
+            <p>
+              AWS Auto Scaling helps us automatically increase or decrease the
+              number of EC2 instances based on demand.
+            </p>
+
+            <p>
+              For example, if traffic increases on a website and CPU usage goes
+              high, Auto Scaling can launch new EC2 instances to handle the
+              extra load. When traffic becomes low again, it can terminate extra
+              instances so that cost stays under control.
+            </p>
+
+            <div class="highlight-box">
+              <strong>In simple words:</strong> Auto Scaling helps maintain
+              performance when demand goes up and helps save money when demand
+              goes down.
+            </div>
+
+            <h2>Main Components Behind Auto Scaling</h2>
+
+            <h3>1. EC2 Instances</h3>
+            <p>
+              These are the servers where our application runs. Auto Scaling
+              does not work alone — it manages a group of EC2 instances.
+            </p>
+
+            <h3>2. Launch Template</h3>
+            <p>
+              A Launch Template is like the blueprint for new EC2 instances. It
+              contains the information needed to launch them, such as:
+            </p>
+            <ul>
+              <li>AMI</li>
+              <li>Instance type</li>
+              <li>Key pair</li>
+              <li>Security group</li>
+              <li>Storage settings</li>
+            </ul>
+
+            <p>
+              Whenever Auto Scaling needs to create a new instance, it uses this
+              template.
+            </p>
+
+            <h3>3. Auto Scaling Group (ASG)</h3>
+            <p>
+              This is the main service that manages the instances. It ensures
+              the correct number of instances are running based on the settings
+              we provide.
+            </p>
+
+            <h3>4. CloudWatch</h3>
+            <p>
+              CloudWatch monitors resources and metrics like CPU utilization,
+              network traffic, and more. Auto Scaling can use CloudWatch metrics
+              and alarms to decide when to add or remove instances.
+            </p>
+
+            <h3>5. Load Balancer and Target Group</h3>
+            <p>
+              In many real-world web applications, instances are placed behind
+              an Application Load Balancer. The load balancer distributes
+              traffic, and the target group keeps track of which instances
+              should receive requests.
+            </p>
+
+            <h2>How It Works Together</h2>
+            <p>A common setup looks like this:</p>
+
+            <ul>
+              <li>User sends request to the Load Balancer</li>
+              <li>Load Balancer forwards traffic to the Target Group</li>
+              <li>Auto Scaling Group launches and manages the EC2 instances</li>
+              <li>CloudWatch monitors metrics like CPU</li>
+              <li>Scaling policy decides whether to scale out or scale in</li>
+            </ul>
+
+            <p>This creates a more reliable and scalable architecture.</p>
+
+            <h2>Important Capacity Settings</h2>
+            <p>
+              When creating an Auto Scaling Group, three values are very
+              important:
+            </p>
+
+            <ul>
+              <li>
+                <strong>Minimum capacity:</strong> The lowest number of
+                instances that must always stay running
+              </li>
+              <li>
+                <strong>Desired capacity:</strong> The normal number of
+                instances you want running
+              </li>
+              <li>
+                <strong>Maximum capacity:</strong> The upper limit to control
+                scale and cost
+              </li>
+            </ul>
+
+            <p>For example:</p>
+            <ul>
+              <li>Minimum = 1</li>
+              <li>Desired = 2</li>
+              <li>Maximum = 4</li>
+            </ul>
+
+            <p>
+              This means AWS starts with 2 instances, never goes below 1, and
+              never launches more than 4.
+            </p>
+
+            <h2>Scaling Policies</h2>
+            <p>
+              Scaling policies define how Auto Scaling should react when metrics
+              change.
+            </p>
+
+            <h3>Target Tracking Scaling</h3>
+            <p>
+              This is one of the simplest and most useful options. We can set a
+              target like:
+            </p>
+            <ul>
+              <li>Keep average CPU utilization at 50%</li>
+            </ul>
+
+            <p>
+              If CPU goes above that value, Auto Scaling adds instances. If it
+              goes below that value, it can remove instances.
+            </p>
+
+            <h3>Step Scaling</h3>
+            <p>Here we can define more detailed rules. For example:</p>
+            <ul>
+              <li>If CPU &gt; 60%, add 2 instances</li>
+              <li>If CPU &gt; 80%, add 4 instances</li>
+            </ul>
+
+            <p>
+              This gives more manual control, but it usually requires proper
+              testing and performance data before setting the numbers.
+            </p>
+
+            <h3>Scheduled Scaling</h3>
+            <p>
+              This is useful if traffic patterns are predictable. For example,
+              if you know traffic always increases during office hours or during
+              a sales campaign, you can schedule AWS to increase capacity before
+              traffic starts.
+            </p>
+
+            <h2>Health Checks Matter a Lot</h2>
+            <p>One thing I found very important is health checks.</p>
+
+            <p>
+              EC2 health checks are basic. They mainly check whether the machine
+              itself is healthy. But sometimes the EC2 instance is technically
+              running while the application inside it has crashed.
+            </p>
+
+            <p>
+              For web applications, using Load Balancer health checks is much
+              better. This way AWS can detect whether the actual application is
+              responding on a specific port and path. If not, Auto Scaling can
+              replace that unhealthy instance.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Good practice:</strong> For web apps, use Elastic Load
+              Balancer health checks instead of depending only on EC2 health
+              checks.
+            </div>
+
+            <h2>Why Stateless Design is Important</h2>
+            <p>A very important lesson in Auto Scaling is this:</p>
+
+            <p>
+              <strong
+                >Do not store important application data inside the EC2 instance
+                itself.</strong
+              >
+            </p>
+
+            <p>
+              Why? Because Auto Scaling can terminate an instance at any time if
+              it becomes unhealthy or if scale-in happens.
+            </p>
+
+            <p>
+              That means if your important data is stored only inside that
+              instance, you can lose it.
+            </p>
+
+            <p>
+              A better approach is to use shared or external storage such as:
+            </p>
+            <ul>
+              <li>EFS for shared files</li>
+              <li>S3 for object storage</li>
+              <li>RDS or another database for application data</li>
+            </ul>
+
+            <p>
+              This makes the EC2 instances more stateless, which is a strong
+              design pattern in scalable cloud systems.
+            </p>
+
+            <h2>Updating an Application in Auto Scaling</h2>
+            <p>Another practical point is deployment.</p>
+
+            <p>
+              In an Auto Scaling environment, we should not log into one server
+              and manually change application code. Since instances are managed
+              automatically, manual changes are not reliable.
+            </p>
+
+            <p>The better process is:</p>
+
+            <ul>
+              <li>Create a new AMI with the updated application</li>
+              <li>Update the Launch Template or Launch Template version</li>
+              <li>
+                Run an Instance Refresh so old instances are replaced with new
+                ones
+              </li>
+            </ul>
+
+            <p>
+              This keeps the environment consistent and production-friendly.
+            </p>
+
+            <h2>Cleanup is Also Important</h2>
+            <p>One practical AWS habit I’m learning is proper cleanup.</p>
+
+            <p>
+              After testing an Auto Scaling setup, it is important to remove
+              resources you no longer need. Especially the Load Balancer, since
+              that can continue generating cost even if instances are gone.
+            </p>
+
+            <p>A clean approach is:</p>
+            <ul>
+              <li>Delete the Load Balancer</li>
+              <li>Delete or scale down the Auto Scaling Group</li>
+              <li>
+                Remove unused Target Groups, AMIs, and snapshots if they are no
+                longer needed
+              </li>
+            </ul>
+
+            <h2>What I Learned From This</h2>
+            <p>Auto Scaling helped me connect many AWS services together:</p>
+            <ul>
+              <li>EC2</li>
+              <li>Launch Templates</li>
+              <li>Load Balancer</li>
+              <li>Target Groups</li>
+              <li>CloudWatch</li>
+              <li>EFS</li>
+            </ul>
+
+            <p>
+              More than just an AWS feature, Auto Scaling teaches an important
+              cloud mindset: build systems that can handle change automatically.
+            </p>
+
+            <p>That means:</p>
+            <ul>
+              <li>Better availability</li>
+              <li>Better cost optimization</li>
+              <li>Better fault tolerance</li>
+              <li>Less manual work</li>
+            </ul>
+
+            <h2>Final Thoughts</h2>
+            <p>
+              For me, Auto Scaling was one of those topics that sounded big at
+              first, but became clear once I saw how all the parts fit together.
+              It is not only about adding more servers — it is about designing
+              applications in a smarter and more cloud-ready way.
+            </p>
+
+            <p>
+              If you're learning AWS or DevOps, I highly recommend doing a
+              hands-on Auto Scaling exercise yourself. It ties together many
+              important ideas and gives a much better understanding than theory
+              alone.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

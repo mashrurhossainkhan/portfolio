@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A guide to using Vagrant for setting up local development environments and simulating infrastructure."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Vagrant for Local Infrastructure | Mashrur</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        padding-top: 7rem;
+        padding-bottom: 3rem;
+      }
+
+      .blog-content {
+        padding-bottom: 5rem;
+      }
+
+      .blog-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      }
+
+      .blog-content h2,
+      .blog-content h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-meta {
+        font-size: 0.95rem;
+        color: #909090;
+        margin-bottom: 1.5rem;
+      }
+
+      .blog-code {
+        background: #111827;
+        color: #f9fafb;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        overflow-x: auto;
+        font-size: 0.95rem;
+      }
+
+      .blog-code code {
+        color: inherit;
+        white-space: pre;
+      }
+
+      .blog-tag {
+        display: inline-block;
+        margin-right: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.35rem 0.8rem;
+        border-radius: 999px;
+        background: #f1f3f9;
+        color: #474559;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- MENU -->
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link">About</a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link">Projects</a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link">Blogs</a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="blog-hero text-center">
+      <div class="container">
+        <h1>Getting Started with Vagrant</h1>
+        <p class="blog-meta">DevOps · Virtualization · Local Infrastructure</p>
+
+        <div>
+          <span class="blog-tag">Vagrant</span>
+          <span class="blog-tag">Linux</span>
+          <span class="blog-tag">DevOps</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 col-12">
+            <div class="blog-card">
+              <p>
+                Vagrant is a tool designed to simplify the creation and
+                management of virtual development environments. It allows
+                infrastructure to be defined as code, making it easy to
+                reproduce environments across different systems.
+              </p>
+
+              <h2>What is Vagrant?</h2>
+              <p>
+                Vagrant uses a configuration file called a Vagrantfile to define
+                virtual machines. Instead of manually setting up environments,
+                everything can be automated with simple commands.
+              </p>
+
+              <div class="blog-code">
+                <code>vagrant up</code>
+              </div>
+
+              <p>
+                This command creates and starts the virtual machines defined in
+                the Vagrantfile.
+              </p>
+
+              <h2>Why Use Vagrant?</h2>
+              <ul>
+                <li>Ensures consistent environments across teams</li>
+                <li>Reduces setup time</li>
+                <li>Supports multi-machine architecture</li>
+                <li>Useful for DevOps practice and testing</li>
+              </ul>
+
+              <h2>Basic Workflow</h2>
+              <ol>
+                <li>Create a Vagrantfile</li>
+                <li>Run <code>vagrant up</code></li>
+                <li>Access machines with <code>vagrant ssh</code></li>
+                <li>Destroy when finished</li>
+              </ol>
+
+              <h2>Example Configuration</h2>
+
+              <div class="blog-code">
+                <code
+                  >Vagrant.configure("2") do |config| config.vm.box = "centos/7"
+                  config.vm.define "web01" do |web| web.vm.network
+                  "private_network", ip: "192.168.56.11" end config.vm.define
+                  "web02" do |web| web.vm.network "private_network", ip:
+                  "192.168.56.12" end end</code
+                >
+              </div>
+
+              <p>
+                This setup creates two virtual machines with private IP
+                addresses.
+              </p>
+
+              <h2>Working with Multiple Machines</h2>
+
+              <div class="blog-code">
+                <code>vagrant ssh web01 vagrant ssh web02</code>
+              </div>
+
+              <p>
+                Each machine can be accessed individually, allowing simulation
+                of real-world systems.
+              </p>
+
+              <h2>Provisioning</h2>
+
+              <div class="blog-code">
+                <code
+                  >config.vm.provision "shell", inline: <<-SHELL yum install -y
+                  httpd systemctl start httpd SHELL</code
+                >
+              </div>
+
+              <p>
+                Provisioning ensures that required software is installed
+                automatically during setup.
+              </p>
+
+              <h2>Common Commands</h2>
+
+              <div class="blog-code">
+                <code>vagrant up vagrant ssh vagrant halt vagrant destroy</code>
+              </div>
+
+              <h2>Conclusion</h2>
+              <p>
+                Vagrant provides a simple way to create and manage development
+                environments. It is especially useful for learning DevOps
+                concepts and testing infrastructure locally before moving to
+                cloud environments.
+              </p>
+
+              <a
+                href="index.html#blogs"
+                class="btn custom-btn custom-btn-bg mt-4"
+              >
+                Back to Blogs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer py-5 text-center">
+      <div class="container">
+        <p>© 2026 Mashrur Hossain Khan</p>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>

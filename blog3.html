@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A step-by-step guide to learning Bash scripting with GitHub Copilot, virtual machines, and practical DevOps-style automation."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>
+      Learning Bash Scripting with GitHub Copilot | Mashrur Hossain Khan
+    </title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-hero {
+        background: #f8f9fa;
+        padding: 120px 0 70px;
+      }
+
+      .blog-content {
+        padding: 60px 0 80px;
+      }
+
+      .blog-content h2,
+      .blog-content h3,
+      .blog-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        color: #5b5b5b;
+        line-height: 1.9;
+        font-size: 1rem;
+      }
+
+      .blog-content pre {
+        background: #1e1e1e;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+
+      .blog-content code {
+        color: #f8f8f2;
+      }
+
+      .blog-note {
+        background: #fff6df;
+        border-left: 4px solid #ffc107;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-tip {
+        background: #eef8ff;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        margin: 1.5rem 0;
+      }
+
+      .blog-step {
+        background: #ffffff;
+        border: 1px solid #ececec;
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      }
+
+      .back-link {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .meta-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"
+          ><i class="uil uil-user"></i> Mashrur</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"
+                ><span data-hover="About">About</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span data-hover="Projects">Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#resume" class="nav-link"
+                ><span data-hover="Resume">Resume</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"
+                ><span data-hover="Blogs">Blogs</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span data-hover="Contact">Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-hero">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 text-center">
+            <a href="index.html#blogs" class="back-link">← Back to Blogs</a>
+            <h1 class="mt-4">
+              How I Learned Bash Scripting Faster with GitHub Copilot
+            </h1>
+            <p class="meta-text mt-3 mb-0">
+              A practical, step-by-step learning journey using Bash, Vagrant
+              virtual machines, and AI-assisted scripting.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9">
+            <p>
+              Instead of only reading commands and syntax, I used virtual
+              machines, real scripts, and GitHub Copilot to understand how Bash
+              is actually used in a DevOps-style workflow. What made this
+              learning experience useful was not just writing scripts, but
+              improving them, testing them, and understanding why certain Bash
+              practices matter.
+            </p>
+
+            <p>
+              In this blog, I want to walk through what I learned step by step,
+              from basic scripts to better practices like using functions,
+              handling variables safely, validating files, using arrays, and
+              even deploying scripts to multiple remote machines.
+            </p>
+
+            <h2>Why This Learning Style Helped Me</h2>
+            <p>
+              Bash can feel simple at first, but once you start automating real
+              setup tasks, you quickly realize that structure and safety matter
+              a lot. A script that works once is not enough. It should also be
+              readable, reusable, and safe to run on real machines.
+            </p>
+
+            <div class="blog-tip">
+              <strong>My biggest takeaway:</strong> AI can help generate code
+              quickly, but the real value comes from reviewing, understanding,
+              and testing everything yourself.
+            </div>
+
+            <h2>Step 1: Start with a Basic Script</h2>
+            <div class="blog-step">
+              <p>
+                The first scripts were simple system information scripts. They
+                included commands to print uptime, memory usage, and disk usage.
+                This was useful because it showed how Bash scripts are just a
+                sequence of shell commands written in a reusable format.
+              </p>
+
+              <pre><code>#!/bin/bash
+
+echo "System Information"
+uptime
+free -m
+df -h</code></pre>
+
+              <p>
+                Even from a simple script like this, GitHub Copilot started
+                suggesting additional sections such as CPU usage, network
+                information, and running processes. That was the first time I
+                saw how AI can speed up scripting when the structure is already
+                clear.
+              </p>
+            </div>
+
+            <h2>Step 2: Use a Shared Folder with Virtual Machines</h2>
+            <div class="blog-step">
+              <p>
+                I used Vagrant virtual machines for testing. Instead of manually
+                copying scripts every time, I placed them in the synced folder.
+                Inside the VM, the scripts became available through the
+                <code style="color: #ffc107">/vagrant</code> directory.
+              </p>
+
+              <pre><code>cd /vagrant
+ls</code></pre>
+
+              <p>
+                This made the workflow much easier. I could edit the script in
+                VS Code, save it, and then test it directly from the VM. It felt
+                much closer to a real automation workflow than just writing
+                shell commands in one local terminal.
+              </p>
+            </div>
+
+            <h2>Step 3: Improve the Script with Copilot</h2>
+            <div class="blog-step">
+              <p>
+                One of the most useful features was selecting the entire script
+                and asking Copilot to improve it according to development best
+                practices. This was not only about getting a better script, but
+                also about learning what a better script looks like.
+              </p>
+
+              <p>A common improvement it suggested was this line:</p>
+
+              <pre><code>set -euo pipefail</code></pre>
+
+              <p>
+                At first this looked small, but it is actually very important in
+                Bash scripting.
+              </p>
+
+              <ul>
+                <li>
+                  <strong>-e</strong> makes the script exit immediately if a
+                  command fails.
+                </li>
+                <li>
+                  <strong>-u</strong> stops the script when an undefined
+                  variable is used.
+                </li>
+                <li>
+                  <strong>pipefail</strong> makes a pipeline fail if any command
+                  inside it fails.
+                </li>
+              </ul>
+
+              <p>
+                This taught me that production-style scripts should fail early
+                instead of silently continuing in a broken state.
+              </p>
+            </div>
+
+            <h2>Step 4: Learn Functions to Make Scripts Cleaner</h2>
+            <div class="blog-step">
+              <p>
+                Another big improvement was using functions. Instead of
+                repeating the same echo lines and setup blocks, I learned to
+                group reusable tasks into functions.
+              </p>
+
+              <pre><code>log() {
+  echo "########################"
+  echo "$1"
+  echo "########################"
+}
+
+install_dependencies() {
+  log "Installing packages"
+  yum install -y httpd wget unzip
+}</code></pre>
+
+              <p>
+                With functions, the script became much easier to read. Each part
+                had a clear purpose, and the main execution section simply
+                called those functions in order.
+              </p>
+
+              <pre><code>main() {
+  install_dependencies
+  setup_webfiles
+  start_service
+}
+
+main</code></pre>
+
+              <p>
+                This was one of the most useful structural lessons for me.
+                Instead of writing one long script from top to bottom, I learned
+                to think in blocks of responsibility.
+              </p>
+            </div>
+
+            <h2>Step 5: Handle Variables Safely</h2>
+            <div class="blog-step">
+              <p>
+                I also learned that variable usage in Bash can be risky if you
+                are not careful. For example, writing this is not ideal:
+              </p>
+
+              <pre><code>yum install $PACKAGE</code></pre>
+
+              <p>A better version is:</p>
+
+              <pre><code>yum install "$PACKAGE"</code></pre>
+
+              <p>
+                The double quotes help prevent word splitting and globbing
+                issues. This may seem minor, but it can prevent weird bugs,
+                especially when variables come from user input or contain
+                spaces.
+              </p>
+            </div>
+
+            <h2>
+              Step 6: Validate Directories and Files Before Running Commands
+            </h2>
+            <div class="blog-step">
+              <p>
+                One great lesson was that scripts should not assume everything
+                is valid. For example, a command like this can be dangerous:
+              </p>
+
+              <pre><code>cd $TEMP_DIR</code></pre>
+
+              <p>
+                If the variable is empty or the path is wrong, the script may
+                continue running in the wrong location. The safer approach is:
+              </p>
+
+              <pre><code>cd "$TEMP_DIR" || exit 1</code></pre>
+
+              <p>
+                This means the script will stop immediately if it cannot change
+                to the expected directory.
+              </p>
+
+              <p>The same idea applies to checking files before using them:</p>
+
+              <pre><code>if [ ! -f "$HOSTS_FILE" ]; then
+  echo "Hosts file not found"
+  exit 1
+fi</code></pre>
+            </div>
+
+            <h2>Step 7: Use Modern Bash Syntax</h2>
+            <div class="blog-step">
+              <p>
+                Some older Bash syntax still works, but there are cleaner and
+                more recommended ways to write things today. A good example is
+                command substitution.
+              </p>
+
+              <p>Older style:</p>
+              <pre><code>DATE=`date`</code></pre>
+
+              <p>Recommended style:</p>
+              <pre><code>DATE=$(date)</code></pre>
+
+              <p>
+                The newer syntax is easier to read and better when commands
+                become more complex.
+              </p>
+            </div>
+
+            <h2>Step 8: Handle User Input More Carefully</h2>
+            <div class="blog-step">
+              <p>
+                When reading user input, I learned that this is not the safest
+                form:
+              </p>
+
+              <pre><code>read name</code></pre>
+
+              <p>A better version is:</p>
+
+              <pre><code>read -r name</code></pre>
+
+              <p>
+                Using <code style="color: #ffc107">-r</code> helps prevent
+                backslashes from being interpreted in unexpected ways. This is
+                one of those small improvements that makes input handling safer.
+              </p>
+            </div>
+
+            <h2>
+              Step 9: Move from Single-Machine Scripts to Multi-Host Automation
+            </h2>
+            <div class="blog-step">
+              <p>
+                One of the most interesting parts of this learning journey was
+                working with a remote setup script that could deploy changes to
+                multiple machines. This was much closer to real DevOps work.
+              </p>
+
+              <p>
+                The script first read a list of hosts from a file and stored
+                them in an array:
+              </p>
+
+              <pre><code>mapfile -t hosts &lt; hosts.txt</code></pre>
+
+              <p>Then it looped over each host:</p>
+
+              <pre><code>for host in "${hosts[@]}"; do
+  echo "Working on $host"
+done</code></pre>
+
+              <p>
+                This was especially useful because I learned why arrays and
+                loops matter in automation. Instead of repeating the same steps
+                manually, the script can apply them server by server.
+              </p>
+            </div>
+
+            <h2>Step 10: Copy and Execute Scripts on Remote Machines</h2>
+            <div class="blog-step">
+              <p>
+                The remote deployment workflow used tools like
+                <code style="color: #ffc107">scp</code> and
+                <code style="color: #ffc107">ssh</code>. The basic idea was
+                simple:
+              </p>
+
+              <pre><code>scp setup.sh user@$host:/tmp/
+ssh user@$host "bash /tmp/setup.sh"</code></pre>
+
+              <p>
+                This means the automation script can copy another script to a
+                remote machine and then run it there. That felt like an
+                important shift from basic Bash practice to actual environment
+                setup automation.
+              </p>
+            </div>
+
+            <h2>Step 11: Add OS-Based Logic</h2>
+            <div class="blog-step">
+              <p>
+                Another useful lesson was that not all Linux systems are the
+                same. Package names and package managers may differ between
+                Ubuntu and RPM-based systems.
+              </p>
+
+              <pre><code>if grep -qi ubuntu /etc/os-release; then
+  PACKAGE="apache2"
+else
+  PACKAGE="httpd"
+fi</code></pre>
+
+              <p>
+                This kind of operating system check makes scripts more flexible
+                and reusable across environments.
+              </p>
+            </div>
+
+            <h2>
+              Step 12: Use AI to Scaffold Bigger Projects, But Think Critically
+            </h2>
+            <div class="blog-step">
+              <p>
+                One of the most impressive parts of the learning process was
+                asking Copilot to generate a complete Tomcat setup project. The
+                request included two setup scripts, one for Ubuntu and one for
+                RPM-based systems, plus a deployment script that reads hosts
+                from a file.
+              </p>
+
+              <p>
+                AI was able to generate a full project structure quickly,
+                including a README and deployment flow. But the biggest lesson
+                was not that AI can generate code. The real lesson was that I
+                still needed to review it, question it, and test it in my VMs
+                before trusting it.
+              </p>
+            </div>
+
+            <div class="blog-note">
+              <strong>Important reminder:</strong> Never blindly apply AI
+              suggestions. Review the code, test it in a safe environment, and
+              make sure it does exactly what you expect.
+            </div>
+
+            <h2>What I Learned Overall</h2>
+            <p>
+              This experience helped me understand Bash scripting in a much more
+              practical way. I did not just learn commands. I learned how to
+              make scripts safer, more structured, and more reusable. I also
+              learned that GitHub Copilot is most useful when I already
+              understand the problem I am trying to solve.
+            </p>
+
+            <p>In short, these were my biggest takeaways:</p>
+
+            <ul>
+              <li>
+                Use Bash for real automation tasks, not just command practice.
+              </li>
+              <li>
+                Structure scripts with functions and a clear main execution
+                flow.
+              </li>
+              <li>
+                Quote variables and validate files or directories before acting.
+              </li>
+              <li>
+                Use safer Bash practices like
+                <code style="color: #ffc107">set -euo pipefail</code> and
+                <code>read -r</code>.
+              </li>
+              <li>Use arrays and loops when working with multiple hosts.</li>
+              <li>
+                Let AI help, but always verify and test everything yourself.
+              </li>
+            </ul>
+
+            <h2>Final Thoughts</h2>
+            <p>
+              This was more than a Bash lesson for me. It was a lesson in how
+              modern engineers work: using tools like AI to move faster, while
+              still relying on their own judgment, testing, and debugging
+              skills.
+            </p>
+
+            <p>
+              As I continue building my DevOps and backend skills, this kind of
+              practical learning is exactly what I want more of: write, improve,
+              test, break, fix, and understand.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 col-12 text-center">
+            <p class="copyright-text mb-0">
+              Designed and written by Mashrur Hossain Khan
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>
