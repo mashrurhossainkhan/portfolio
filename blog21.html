@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on using Amazon MQ with RabbitMQ for asynchronous messaging, along with an overview of SNS and SQS as AWS-native event-driven alternatives."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Amazon MQ with RabbitMQ and SNS/SQS Basics | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Amazon MQ with RabbitMQ and SNS/SQS Basics</h1>
+            <p>
+              A practical walkthrough of asynchronous messaging with Amazon MQ
+              for RabbitMQ, plus a simple comparison with SNS and SQS for
+              event-driven AWS architectures.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              After setting up the database and cache layers in the vProfile
+              re-architecture project, the next important concept was
+              <strong>messaging</strong>. This step focused on why asynchronous
+              communication matters and how a message broker helps applications
+              stay responsive while background work continues separately.
+            </p>
+
+            <p>
+              In this lesson, the main messaging platform was
+              <strong>RabbitMQ</strong> through <strong>Amazon MQ</strong>. It
+              also introduced <strong>SNS</strong> and <strong>SQS</strong> as
+              AWS-native messaging services that are common in event-driven
+              designs.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> do not make users wait for every
+              background task. Put long-running or secondary work into a queue
+              so the application can respond faster.
+            </div>
+
+            <h2>Why Messaging Is Needed</h2>
+            <p>
+              If an application tries to do everything inside one request, the
+              response can become slow and tightly coupled. For example, after a
+              user action, the system might need to save data, send an email,
+              trigger analytics, and notify another service.
+            </p>
+
+            <div class="code-block">
+Without messaging:
+User -> App -> DB -> Email -> Analytics -> Recommendations
+
+With messaging:
+User -> App -> Queue -> Fast response
+                     -> Background workers
+            </div>
+
+            <p>
+              Messaging improves performance and design because the main app can
+              hand work to another system and move on, while workers process the
+              tasks asynchronously.
+            </p>
+
+            <h2>RabbitMQ Through Amazon MQ</h2>
+            <p>
+              Instead of managing RabbitMQ manually on EC2, this setup used
+              <strong>Amazon MQ</strong>, which is AWS’s managed broker service.
+              That gives the project a hosted message broker while keeping the
+              architecture closer to production-style infrastructure.
+            </p>
+
+            <p>The key settings were simple:</p>
+
+            <ul>
+              <li>Engine: RabbitMQ</li>
+              <li>Instance type: <code>mq.t3.micro</code></li>
+              <li>Access: private</li>
+              <li>Security group: backend security group</li>
+            </ul>
+
+            <div class="tip-box">
+              <strong>Why this matters:</strong> the message broker is part of
+              the private backend layer, so it should not be exposed publicly.
+              Only trusted application resources should be able to connect.
+            </div>
+
+            <h2>Where Messaging Fits in the Architecture</h2>
+            <p>
+              The broker sits between the application and the background worker
+              processes. The application produces messages, and consumers handle
+              them later.
+            </p>
+
+            <div class="code-block">
+User -> Application -> RabbitMQ / Amazon MQ -> Worker services
+            </div>
+
+            <p>
+              This makes the system more flexible because producers and
+              consumers do not need to run at the same speed or even at the
+              same time.
+            </p>
+
+            <h2>Node.js Producer Example</h2>
+            <p>
+              To send a message to RabbitMQ from Node.js, the lesson used the
+              <code>amqplib</code> package.
+            </p>
+
+            <div class="code-block">npm install amqplib</div>
+
+            <p>A simple producer example looks like this:</p>
+
+            <div class="code-block">
+const amqp = require("amqplib");
+
+async function sendOrder(order) {
+  const conn = await amqp.connect("amqp://Rabbit:pass@endpoint:5672");
+  const channel = await conn.createChannel();
+
+  const queue = "orderQueue";
+  await channel.assertQueue(queue);
+
+  channel.sendToQueue(queue, Buffer.from(JSON.stringify(order)));
+  console.log("Order sent to queue");
+}
+            </div>
+
+            <p>
+              In this pattern, the application sends a message and does not need
+              to do all the follow-up work inside the same request.
+            </p>
+
+            <h2>Node.js Consumer Example</h2>
+            <p>
+              A worker service can listen to the queue and process messages in
+              the background.
+            </p>
+
+            <div class="code-block">
+async function consumeOrder() {
+  const conn = await amqp.connect("amqp://Rabbit:pass@endpoint:5672");
+  const channel = await conn.createChannel();
+
+  const queue = "orderQueue";
+  await channel.assertQueue(queue);
+
+  channel.consume(queue, (msg) => {
+    const order = JSON.parse(msg.content.toString());
+    console.log("Processing order:", order);
+
+    // email / analytics / recommendation logic
+  });
+}
+            </div>
+
+            <p>
+              This is the core benefit of messaging: one part of the system
+              produces events, and another part handles them independently.
+            </p>
+
+            <h2>Real Use Case</h2>
+            <p>
+              A good example is an order workflow. When a user places an order,
+              the application should save the order quickly, then let background
+              workers handle the rest.
+            </p>
+
+            <div class="code-block">
+User purchase
+-> Save order
+-> Send message to queue
+-> Email service
+-> Recommendation service
+-> Analytics service
+            </div>
+
+            <p>
+              The user experience stays fast because the heavy work is moved out
+              of the main request path.
+            </p>
+
+            <h2>Limits of a RabbitMQ-Based Setup</h2>
+            <p>
+              RabbitMQ is powerful, but it also introduces broker management,
+              connection handling, and more messaging-specific configuration.
+            </p>
+
+            <ul>
+              <li>Connections must be managed correctly</li>
+              <li>Queue setup and broker configuration add complexity</li>
+              <li>It is not the simplest option for every serverless workflow</li>
+            </ul>
+
+            <h2>AWS-Native Alternative: SNS and SQS</h2>
+            <p>
+              The lesson also highlighted a common AWS-native pattern using
+              <strong>SNS</strong> and <strong>SQS</strong>. This is often used
+              when applications want fan-out messaging with managed queues.
+            </p>
+
+            <div class="code-block">
+Application
+-> SNS topic
+   -> SQS queue for email
+   -> SQS queue for recommendations
+   -> SQS queue for analytics
+            </div>
+
+            <ul>
+              <li><strong>SNS</strong> is for publishing and fan-out delivery</li>
+              <li><strong>SQS</strong> is for queueing, retry, and decoupled consumption</li>
+            </ul>
+
+            <div class="tip-box">
+              <strong>Simple way to remember it:</strong> SNS broadcasts,
+              while SQS stores work until a consumer processes it.
+            </div>
+
+            <h2>Node.js SNS Example</h2>
+            <p>
+              A minimal SNS publish example in Node.js looks like this:
+            </p>
+
+            <div class="code-block">
+const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
+
+const client = new SNSClient({ region: "us-east-1" });
+
+async function publishEvent(order) {
+  const command = new PublishCommand({
+    TopicArn: "your-topic-arn",
+    Message: JSON.stringify(order),
+  });
+
+  await client.send(command);
+  console.log("Event published");
+}
+            </div>
+
+            <h2>RabbitMQ vs SNS/SQS</h2>
+            <p>
+              These options solve related problems, but they have different
+              styles and tradeoffs.
+            </p>
+
+            <div class="code-block">
+SNS  -> publish / fan-out
+SQS  -> queue / storage / retry
+RabbitMQ -> broker with richer queue and routing control
+            </div>
+
+            <p>
+              RabbitMQ gives more broker-style flexibility, while SNS and SQS
+              fit naturally into many AWS-native systems.
+            </p>
+
+            <h2>Common Mistakes to Avoid</h2>
+            <div class="warning-box">
+              <strong>Things to watch carefully:</strong>
+              <ul class="mb-0">
+                <li>Do not expose the MQ broker publicly</li>
+                <li>Do not use SNS alone when durable queueing is required</li>
+                <li>Do not forget worker processes for background tasks</li>
+                <li>Do not ignore credentials, ports, and connection settings</li>
+              </ul>
+            </div>
+
+            <h2>What I Learned from This Step</h2>
+            <ul>
+              <li>Messaging is essential for asynchronous processing</li>
+              <li>RabbitMQ helps decouple producers and consumers</li>
+              <li>Amazon MQ brings managed broker infrastructure to AWS</li>
+              <li>SNS and SQS are strong AWS-native alternatives</li>
+              <li>Event-driven design improves scalability and responsiveness</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This lesson introduced the messaging layer of a real backend
+              architecture. Instead of forcing the application to complete every
+              task during a single user request, the system can push work into a
+              queue and process it more efficiently in the background.
+            </p>
+
+            <p>
+              It also made the tradeoffs clearer: RabbitMQ offers broker-level
+              control, while SNS and SQS provide a more AWS-native event-driven
+              path. Both approaches help applications scale beyond simple
+              request-response designs.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

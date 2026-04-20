@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on completing the vProfile deployment on AWS Elastic Beanstalk by connecting backend services, building the application artifact, verifying the deployment, and enabling HTTPS with a custom domain."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>
+      Completing vProfile Deployment on AWS Elastic Beanstalk | Mashrur Hossain
+      Khan
+    </title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Completing vProfile Deployment on AWS Elastic Beanstalk</h1>
+            <p>
+              A practical walkthrough of connecting the final backend details,
+              deploying the application artifact, verifying the live
+              environment, and securing the Beanstalk setup with HTTPS and a
+              custom domain.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              After creating the Elastic Beanstalk environment and allowing the
+              application layer to reach the backend services, the next step was
+              to complete the actual application deployment. This is the stage
+              where the vProfile stack starts behaving like a full working
+              system rather than a collection of separate AWS services.
+            </p>
+
+            <p>
+              At this point, the environment, database, cache, and messaging
+              layers already existed. The remaining work was to connect the app
+              to the right backend endpoints, build the deployable artifact,
+              publish it through Elastic Beanstalk, and then secure the public
+              entry point properly.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> the final deployment step is where
+              infrastructure and application configuration come together. If the
+              endpoints, ports, credentials, or listener setup are wrong, the
+              environment may launch but the application will not work
+              correctly.
+            </div>
+
+            <h2>Deployment Flow</h2>
+            <div class="code-block">
+              Backend services ready -> Update application configuration ->
+              Build application artifact -> Deploy application version to
+              Beanstalk -> Verify application behavior -> Add HTTPS and custom
+              domain
+            </div>
+
+            <h2>Collect Backend Service Information</h2>
+            <p>
+              Before deployment, the application needed the correct connection
+              details for each backend service. These values come from the AWS
+              console pages for RDS, ElastiCache, and Amazon MQ.
+            </p>
+
+            <div class="code-block">
+              RDS endpoint -> your-db.xxxxxx.region.rds.amazonaws.com:3306
+              Memcached endpoint ->
+              your-cache.xxxxxx.cfg.region.cache.amazonaws.com:11211 RabbitMQ
+              endpoint -> amqps://your-broker.xxxxxx.region.amazonaws.com:5671
+            </div>
+
+            <div class="tip-box">
+              Amazon MQ for RabbitMQ uses secure AMQP with TLS on port
+              <code>5671</code>. That is why the endpoint is different from a
+              plain non-TLS RabbitMQ setup.
+            </div>
+
+            <h2>Update the Application Configuration</h2>
+            <p>
+              After gathering the endpoints, the application configuration had
+              to be updated so the Beanstalk-hosted app could talk to the right
+              backend services.
+            </p>
+
+            <p>
+              In practice, the exact property names depend on the application,
+              but the configuration usually includes values like database host,
+              cache host, broker endpoint, usernames, passwords, and ports.
+            </p>
+
+            <div class="code-block">
+              db.host=RDS-ENDPOINT db.port=3306 db.username=admin
+              db.password=your-password memcached.host=CACHE-ENDPOINT
+              memcached.port=11211 rmq.host=MQ-ENDPOINT rmq.port=5671
+              rmq.username=your-broker-user rmq.password=your-broker-password
+            </div>
+
+            <div class="warning-box">
+              <strong>Important:</strong> if the application settings are wrong,
+              the deployment may still complete, but the app can fail at runtime
+              when it tries to connect to the database, cache, or broker.
+            </div>
+
+            <h2>Build the Application Artifact</h2>
+            <p>
+              Once the configuration was ready, the next step was to build the
+              deployable artifact locally. For the Java-based vProfile project,
+              this meant generating the WAR file through Maven.
+            </p>
+
+            <div class="code-block">mvn install</div>
+
+            <p>
+              The build output is typically the deployable WAR file inside the
+              target directory.
+            </p>
+
+            <div class="code-block">target/vprofile-v2.war</div>
+
+            <h2>Deploy the Application Version to Beanstalk</h2>
+            <p>
+              Elastic Beanstalk treats the uploaded artifact as an application
+              version. After the WAR file is ready, it can be uploaded and
+              deployed from the environment dashboard.
+            </p>
+
+            <ol>
+              <li>Open the Elastic Beanstalk environment</li>
+              <li>Choose <strong>Upload and deploy</strong></li>
+              <li>Select the generated WAR file</li>
+              <li>Set a version label</li>
+              <li>Start the deployment</li>
+            </ol>
+
+            <p>
+              Beanstalk then distributes that version to the EC2 instances in
+              the environment according to the deployment policy that was chosen
+              earlier.
+            </p>
+
+            <h2>Deployment Behavior During the Update</h2>
+            <p>
+              In this setup, a rolling deployment with percentage-based batches
+              was used. That means Beanstalk updates one batch of instances at a
+              time instead of replacing everything at once.
+            </p>
+
+            <div class="code-block">
+              Instance batch -> Draining -> Updating -> Health check -> Back in
+              service
+            </div>
+
+            <p>
+              This helps reduce disruption during deployment, but it is
+              different from <strong>rolling with additional batch</strong> or
+              <strong>traffic splitting</strong>, which are the safer choices
+              when maintaining full capacity or canary-style rollout is
+              critical.
+            </p>
+
+            <h2>Verify That the Application Works</h2>
+            <p>
+              After deployment completes, the first check is the Beanstalk
+              environment URL.
+            </p>
+
+            <div class="code-block">http://your-app.elasticbeanstalk.com</div>
+
+            <p>
+              A successful verification usually means more than simply loading
+              the home page. The important part is confirming that the app can
+              actually communicate with its backend dependencies.
+            </p>
+
+            <ul>
+              <li>The application loads through the Beanstalk URL</li>
+              <li>Authentication or login works as expected</li>
+              <li>Pages that depend on database reads respond correctly</li>
+              <li>No backend connection errors appear in the logs</li>
+            </ul>
+
+            <div class="tip-box">
+              If the page loads but some actions fail, the issue is often in
+              backend connectivity, credentials, or application properties
+              rather than the Beanstalk platform itself.
+            </div>
+
+            <h2>Enable HTTPS for the Environment</h2>
+            <p>
+              By default, a new web environment may begin with HTTP access. To
+              secure user traffic properly, the load balancer needs an HTTPS
+              listener and a valid certificate.
+            </p>
+
+            <ol>
+              <li>Add an HTTPS listener to the load balancer</li>
+              <li>Use port <code>443</code></li>
+              <li>Attach an ACM certificate for the application domain</li>
+            </ol>
+
+            <div class="code-block">
+              HTTPS listener -> Port 443 Certificate -> ACM certificate
+            </div>
+
+            <p>
+              This allows TLS termination at the load balancer so the public
+              entry point becomes secure.
+            </p>
+
+            <h2>Map a Custom Domain</h2>
+            <p>
+              Elastic Beanstalk environments already have a default domain name,
+              but a custom domain makes the deployment feel production-ready and
+              easier to present.
+            </p>
+
+            <p>
+              The environment URL is based on an Elastic Beanstalk CNAME, and a
+              custom DNS record can point users to that environment. With Route
+              53 this is often done as an alias, and with external DNS providers
+              it is commonly done with a CNAME where appropriate.
+            </p>
+
+            <div class="code-block">
+              Environment URL -> your-app.region.elasticbeanstalk.com Custom
+              domain -> app.yourdomain.com
+            </div>
+
+            <h2>Final Architecture View</h2>
+            <div class="code-block">
+              User -> HTTPS -> Load Balancer -> Beanstalk EC2 -> RDS ->
+              Memcached -> RabbitMQ
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>
+                Final deployment depends on both infrastructure and application
+                configuration
+              </li>
+              <li>Correct backend endpoints and ports are essential</li>
+              <li>
+                Rolling deployments reduce risk compared with all-at-once
+                updates
+              </li>
+              <li>
+                HTTPS is completed at the load balancer with a certificate
+              </li>
+              <li>
+                A custom domain makes the environment easier to use and present
+              </li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This step brought the full vProfile environment together. The app
+              was no longer just deployed on Beanstalk in isolation. It became a
+              connected application using a managed database, cache, message
+              broker, load balancer, and secure public access path.
+            </p>
+
+            <p>
+              It also showed that successful deployment is not only about
+              uploading a WAR file. Good endpoint management, health checks,
+              secure listeners, and DNS setup are what make the environment feel
+              complete and dependable.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

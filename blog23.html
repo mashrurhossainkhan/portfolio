@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on deploying the vProfile application with AWS Elastic Beanstalk, including roles, networking, scaling, deployment policies, and platform configuration."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Deploying vProfile with AWS Elastic Beanstalk | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Deploying vProfile with AWS Elastic Beanstalk</h1>
+            <p>
+              A practical walkthrough of deploying the vProfile application on
+              AWS Elastic Beanstalk, with a focus on environment setup, roles,
+              networking, scaling, and safer deployment choices.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              In this step of the vProfile re-architecture project, the goal was
+              to deploy the Java application through
+              <strong>AWS Elastic Beanstalk</strong>. Instead of manually
+              building every application-layer resource one by one, Beanstalk
+              helps package the deployment workflow into a managed environment.
+            </p>
+
+            <p>
+              That does not mean Beanstalk hides every AWS concept. It still
+              uses services such as EC2, load balancing, Auto Scaling, and IAM,
+              but it makes the deployment process much faster and easier to
+              manage.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> Elastic Beanstalk lets me deploy the
+              application quickly while AWS provisions and manages much of the
+              supporting infrastructure behind the environment.
+            </div>
+
+            <h2>Why Use Elastic Beanstalk?</h2>
+            <p>
+              A manual deployment usually means configuring servers, choosing a
+              platform, handling scaling settings, and wiring load balancing
+              before the application even becomes reachable.
+            </p>
+
+            <div class="code-block">
+Without Elastic Beanstalk:
+EC2 -> Install platform -> Configure load balancer -> Set up scaling -> Deploy app
+
+With Elastic Beanstalk:
+Create environment -> Choose platform -> Configure settings -> Deploy app
+            </div>
+
+            <p>
+              Beanstalk manages the environment using AWS services in the
+              background. In a web application environment, that can include EC2
+              instances, an Auto Scaling group, an Elastic Load Balancing
+              resource, health monitoring, and application version storage.
+            </p>
+
+            <h2>Roles Required for the Environment</h2>
+            <p>
+              Before creating the environment, it is important to understand
+              that Beanstalk uses two different IAM role types.
+            </p>
+
+            <ul>
+              <li>
+                <strong>Service role:</strong> used by Elastic Beanstalk to call
+                other AWS services on the environment’s behalf
+              </li>
+              <li>
+                <strong>EC2 instance profile:</strong> attached to the EC2
+                instances so they can fetch application versions, write logs,
+                and perform environment-level tasks
+              </li>
+            </ul>
+
+            <div class="tip-box">
+              If the default roles are missing, they need to be created before
+              environment creation can complete smoothly.
+            </div>
+
+            <h2>Create the Beanstalk Application</h2>
+            <p>
+              In this setup, the application was created as a
+              <strong>web server environment</strong> using a
+              <strong>Tomcat platform</strong> for the Java-based vProfile
+              application.
+            </p>
+
+            <ul>
+              <li>Application name: <code>vprofile-rearch</code></li>
+              <li>Environment tier: Web server</li>
+              <li>Platform: Tomcat / Java</li>
+            </ul>
+
+            <p>
+              Beanstalk applications can contain multiple environments such as
+              development, staging, and production, which makes it easier to
+              organize deployments over time.
+            </p>
+
+            <h2>Public URL and Environment Access</h2>
+            <p>
+              Elastic Beanstalk provides an environment domain name that can be
+              used to access the application after deployment.
+            </p>
+
+            <div class="code-block">
+your-app.elasticbeanstalk.com
+            </div>
+
+            <p>
+              This gives a simple way to test the environment before using a
+              custom domain later.
+            </p>
+
+            <h2>Choose Custom Configuration</h2>
+            <p>
+              For this project, the better choice was
+              <strong>custom configuration</strong>, because it allows more
+              control over roles, networking, storage, scaling, health
+              reporting, and deployment behavior.
+            </p>
+
+            <h2>Roles, SSH Access, and Key Pair</h2>
+            <p>
+              During environment creation, the service role and the EC2 instance
+              profile are selected. An EC2 key pair can also be attached if SSH
+              access to the instances is needed later for troubleshooting.
+            </p>
+
+            <div class="warning-box">
+              <strong>Important:</strong> the key pair is optional for normal
+              deployment, but it becomes useful when debugging application or
+              platform issues directly on an instance.
+            </div>
+
+            <h2>Networking Choice in This Setup</h2>
+            <p>
+              In this specific setup, the environment was placed in the default
+              VPC with public access for the application layer, while backend
+              services such as RDS, cache, and messaging stayed private.
+            </p>
+
+            <ul>
+              <li>VPC: default VPC</li>
+              <li>Environment access: public-facing web app</li>
+              <li>Backend services: private</li>
+            </ul>
+
+            <p>
+              That separation is useful because the web layer can receive user
+              traffic while the database and other backend services remain
+              isolated from direct public access.
+            </p>
+
+            <h2>Storage and Launch Template Detail</h2>
+            <p>
+              For the root volume, using <code>gp3</code> is a useful modern
+              choice. In Elastic Beanstalk, a <code>gp3</code> root volume
+              setting can also cause environments to use launch templates
+              instead of older launch configurations.
+            </p>
+
+            <div class="code-block">
+Root volume type: gp3
+            </div>
+
+            <div class="tip-box">
+              This matters because launch templates align better with newer EC2
+              Auto Scaling behavior and current AWS recommendations.
+            </div>
+
+            <h2>Capacity and Scaling</h2>
+            <p>
+              For a load-balanced environment, Beanstalk uses an Auto Scaling
+              group. In this project, the environment was configured with a
+              minimum of two instances and a maximum of four.
+            </p>
+
+            <div class="code-block">
+Min instances: 2
+Max instances: 4
+Instance type: t2.micro
+            </div>
+
+            <p>
+              Two instances are not a universal AWS requirement for every load
+              balanced setup, but choosing two is a practical availability
+              decision because it avoids relying on only a single EC2 instance.
+            </p>
+
+            <h2>Scaling Triggers</h2>
+            <p>
+              Elastic Beanstalk environments use CloudWatch alarms to trigger
+              scaling events. Common choices include outbound network traffic,
+              CPU utilization, latency, and request-related metrics depending on
+              the application behavior.
+            </p>
+
+            <div class="tip-box">
+              For many web applications, <strong>NetworkOut</strong> is a useful
+              scaling signal because it closely reflects request traffic.
+            </div>
+
+            <h2>Load Balancer and Traffic Routing</h2>
+            <p>
+              A load-balanced Beanstalk environment can create and manage an
+              Elastic Load Balancing resource for the application. In this setup,
+              an <strong>Application Load Balancer</strong> was chosen for HTTP
+              traffic.
+            </p>
+
+            <div class="code-block">
+Load balancer type: Application Load Balancer
+Listener port: 80
+            </div>
+
+            <p>
+              The load balancer distributes incoming requests across the EC2
+              instances in the environment.
+            </p>
+
+            <h2>Session Stickiness</h2>
+            <p>
+              Stickiness can be helpful when a web application depends on local
+              session state and users should stay on the same instance for a
+              period of time.
+            </p>
+
+            <div class="warning-box">
+              <strong>Watch carefully:</strong> stickiness is useful for some
+              session-heavy applications, but it should be treated as a design
+              decision, not an automatic requirement for every deployment.
+            </div>
+
+            <h2>Health Reporting and Monitoring</h2>
+            <p>
+              Enhanced health reporting gives better visibility into instance
+              and application status during deployments and while the
+              environment is running.
+            </p>
+
+            <div class="code-block">
+Health reporting: Enhanced
+            </div>
+
+            <h2>Deployment Policies</h2>
+            <p>
+              One of the most important Beanstalk decisions is how application
+              updates are deployed to running instances. AWS supports several
+              deployment policies, each with different tradeoffs.
+            </p>
+
+            <div class="code-block">
+All at once -> Fastest, but causes downtime
+Rolling -> Updates batches gradually
+Rolling with additional batch -> Safer capacity during updates
+Immutable -> Fresh replacement instances, safest but more expensive
+Traffic splitting -> Canary-style testing before full switch
+            </div>
+
+            <p>
+              In this setup, <strong>rolling deployment</strong> was chosen with
+              a percentage-based batch approach.
+            </p>
+
+            <div class="code-block">
+Deployment policy: Rolling
+Batch size: 50%
+            </div>
+
+            <h2>Environment Properties</h2>
+            <p>
+              Elastic Beanstalk also allows application configuration through
+              environment properties. These become useful when wiring the app to
+              backend services later.
+            </p>
+
+            <div class="code-block">
+DB_HOST
+DB_USER
+DB_PASS
+            </div>
+
+            <p>
+              These values were not required immediately for the first setup
+              step, but they are important for application connectivity.
+            </p>
+
+            <h2>Connecting Beanstalk to Backend Services</h2>
+
+            <p>
+              After the Elastic Beanstalk environment is created, the
+              application instances still cannot communicate with backend
+              services such as RDS, ElastiCache, and Amazon MQ unless network
+              access is explicitly allowed.
+            </p>
+
+            <p>
+              All backend services were placed inside a shared backend security
+              group. To allow the application to access them, I needed to
+              update the inbound rules of that security group.
+            </p>
+
+            <div class="code-block">
+Beanstalk EC2 -> Backend services (initially blocked)
+            </div>
+
+            <p>Each Beanstalk environment creates two security groups:</p>
+
+            <ul>
+              <li>Instance security group attached to EC2 instances</li>
+              <li>Load balancer security group</li>
+            </ul>
+
+            <p>
+              It is important to use the
+              <strong>instance security group</strong>, not the load balancer
+              security group.
+            </p>
+
+            <div class="code-block">
+Allow inbound traffic:
+Type: All traffic
+Source: Beanstalk instance security group
+            </div>
+
+            <p>This allows the application layer to connect to:</p>
+
+            <ul>
+              <li>RDS (MySQL - port 3306)</li>
+              <li>Memcached (port 11211)</li>
+              <li>RabbitMQ (port 5672)</li>
+            </ul>
+
+            <div class="highlight-box">
+              <strong>Key idea:</strong> services exist independently, but
+              security groups control whether they can communicate.
+            </div>
+
+            <p>After this step, the architecture becomes fully connected:</p>
+
+            <div class="code-block">
+User -> Load Balancer -> Beanstalk EC2 -> RDS / Cache / MQ
+            </div>
+
+            <h2>What Happens After Submission</h2>
+            <p>
+              After reviewing the configuration and submitting the environment
+              creation, Elastic Beanstalk provisions the resources needed for
+              the application environment.
+            </p>
+
+            <ul>
+              <li>Create EC2 instances for the environment</li>
+              <li>Configure Auto Scaling</li>
+              <li>Configure the load balancer</li>
+              <li>Enable health monitoring</li>
+            </ul>
+
+            <h2>Simple Architecture View</h2>
+            <div class="code-block">
+User -> Load Balancer -> Beanstalk EC2 -> RDS / Cache / MQ
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>Elastic Beanstalk simplifies Java application deployment</li>
+              <li>It still uses core AWS services behind the scenes</li>
+              <li>IAM roles and instance profiles are essential to the setup</li>
+              <li>Deployment policy choices directly affect uptime and risk</li>
+              <li>Beanstalk speeds up delivery without removing architecture thinking</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This step made the deployment layer much clearer. Instead of
+              manually assembling every application-facing AWS resource, I could
+              use Elastic Beanstalk to create a managed environment and focus
+              more on application delivery decisions.
+            </p>
+
+            <p>
+              It also showed that Beanstalk is not “magic.” Good choices around
+              roles, scaling, networking, health checks, and deployment
+              strategy still matter if the goal is a stable production-style
+              setup.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

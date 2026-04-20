@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on using AWS ElastiCache with Memcached for faster application performance, including private networking, backend security, and a simple Node.js integration example."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>AWS ElastiCache with Memcached and Node.js | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>AWS ElastiCache with Memcached and Node.js</h1>
+            <p>
+              A practical walkthrough of using ElastiCache to reduce database
+              load, improve response time, and integrate a Memcached-backed
+              caching layer into an application workflow.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              After setting up the private backend layers for the vProfile
+              project, the next useful service to understand was
+              <strong>AWS ElastiCache</strong>. This step focused on using
+              <strong>Memcached</strong> to improve performance by reducing how
+              often the application needs to query the database.
+            </p>
+
+            <p>
+              The core idea is simple: instead of repeatedly fetching the same
+              data from a slower backend database, the application can keep
+              frequently used data in memory for much faster access.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> cache data that is requested often so
+              the application responds faster and the database does less work.
+            </div>
+
+            <h2>Why Do We Need a Cache Layer?</h2>
+            <p>
+              Without a cache, every repeated request can hit the database
+              directly. That works at small scale, but it becomes less
+              efficient as traffic increases.
+            </p>
+
+            <div class="code-block">
+Without cache:
+User -> App -> Database
+
+With cache:
+User -> App -> Cache
+             -> Database
+            </div>
+
+            <p>
+              In practice, the application first checks the cache. If the data
+              is already there, the result comes back quickly. If not, the app
+              fetches the data from the database, returns it, and stores it in
+              cache for the next request.
+            </p>
+
+            <h2>Why ElastiCache Matters in a Real Architecture</h2>
+            <p>
+              In a layered cloud setup, caching sits between the application
+              logic and the database layer. This helps reduce read pressure on
+              the database and improves user-facing response time.
+            </p>
+
+            <div class="code-block">
+User -> Application -> ElastiCache -> Database
+            </div>
+
+            <p>
+              This is especially useful for repeated reads, session-like data,
+              or values that do not change every second.
+            </p>
+
+            <h2>Step 1: Create an ElastiCache Memcached Cluster</h2>
+            <p>
+              In this setup, the instructor used the
+              <strong>Memcached engine</strong>. Memcached is lightweight,
+              simple, and good for fast key-value caching.
+            </p>
+
+            <p>The core settings included:</p>
+
+            <ul>
+              <li>Engine: Memcached</li>
+              <li>Version: 1.6</li>
+              <li>Node type: <code>cache.t2.micro</code></li>
+              <li>Port: <code>11211</code></li>
+              <li>Security group: backend security group</li>
+              <li>Subnet group: private subnet group</li>
+            </ul>
+
+            <div class="tip-box">
+              <strong>Important:</strong> the cache layer should stay private.
+              Just like the database, it should not be publicly reachable from
+              the internet.
+            </div>
+
+            <h2>Step 2: Keep Networking and Access Private</h2>
+            <p>
+              ElastiCache works best as an internal backend service. That means
+              placing it inside the correct private subnets and attaching the
+              correct security group so only trusted application resources can
+              connect.
+            </p>
+
+            <p>For this project, the key access rule is the same design idea used in the earlier steps:</p>
+
+            <ul>
+              <li>Backend services stay in private networking</li>
+              <li>The backend security group controls trusted communication</li>
+              <li>The application layer is allowed to reach the cache later</li>
+            </ul>
+
+            <div class="code-block">
+Beanstalk application security group -> backend security group -> ElastiCache
+            </div>
+
+            <h2>Step 3: Store the Cache Endpoint as Configuration</h2>
+            <p>
+              Once the cluster is created, the application needs the cache
+              endpoint and port number so it knows where to connect.
+            </p>
+
+            <div class="code-block">
+CACHE_HOST=your-cache-endpoint.amazonaws.com
+CACHE_PORT=11211
+            </div>
+
+            <p>
+              These values are typically passed as environment variables so the
+              application code stays cleaner and easier to move between
+              environments.
+            </p>
+
+            <h2>Step 4: Connect from Node.js</h2>
+            <p>
+              To show how an application can use the cache, this step used the
+              <strong>memcached</strong> package in Node.js.
+            </p>
+
+            <div class="code-block">npm install memcached</div>
+
+            <p>A simple connection example looks like this:</p>
+
+            <div class="code-block">
+const Memcached = require("memcached");
+
+const CACHE_HOST = "your-cache-endpoint.amazonaws.com";
+const CACHE_PORT = 11211;
+
+const memcached = new Memcached(`${CACHE_HOST}:${CACHE_PORT}`);
+            </div>
+
+            <p>
+              This creates the client connection that the application can use
+              for reads and writes to the cache.
+            </p>
+
+            <h2>Step 5: Build Reusable Cache Functions</h2>
+            <p>
+              The next step is creating helper functions for storing and
+              reading cached values. That keeps the caching logic separate from
+              the main business logic.
+            </p>
+
+            <h3>Set a Cache Value</h3>
+            <div class="code-block">
+function setCache(key, value, ttl = 60) {
+  return new Promise((resolve, reject) => {
+    memcached.set(key, value, ttl, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+}
+            </div>
+
+            <h3>Get a Cache Value</h3>
+            <div class="code-block">
+function getCache(key) {
+  return new Promise((resolve, reject) => {
+    memcached.get(key, (err, data) => {
+      if (err) return reject(err);
+      resolve(data);
+    });
+  });
+}
+            </div>
+
+            <p>
+              The TTL value controls how long data stays in cache before
+              expiring.
+            </p>
+
+            <h2>Step 6: Use Cache Before Querying the Database</h2>
+            <p>
+              This is where caching becomes useful. The application first checks
+              whether the requested value is already stored. If it is, the
+              database query can be skipped.
+            </p>
+
+            <div class="code-block">
+async function getUser(userId) {
+  const cacheKey = `user:${userId}`;
+
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    console.log("Cache HIT");
+    return cached;
+  }
+
+  console.log("Cache MISS -> Fetching from DB");
+  const userFromDB = await fakeDBCall(userId);
+  await setCache(cacheKey, userFromDB, 120);
+
+  return userFromDB;
+}
+            </div>
+
+            <p>
+              This pattern is simple, but it is one of the most practical ways
+              to speed up read-heavy workflows.
+            </p>
+
+            <h2>Step 7: Test the Performance Difference</h2>
+            <p>
+              A small test shows the benefit clearly. The first request takes
+              longer because it fetches from the database. The second request is
+              much faster because the result already exists in cache.
+            </p>
+
+            <div class="code-block">
+Cache MISS -> Fetching from DB
+First call: ~1000ms
+
+Cache HIT
+Second call: ~2ms
+            </div>
+
+            <p>
+              That is the practical value of caching: less repeated backend
+              work and a much faster response path for common requests.
+            </p>
+
+            <h2>Common Mistakes to Avoid</h2>
+            <div class="warning-box">
+              <strong>Things to watch carefully:</strong>
+              <ul class="mb-0">
+                <li>Do not use the wrong port; Memcached uses <code>11211</code></li>
+                <li>Do not attach the wrong security group</li>
+                <li>Do not make the cache publicly accessible</li>
+                <li>Do not confuse Redis and Memcached when the project expects Memcached</li>
+              </ul>
+            </div>
+
+            <h2>What I Learned from This Step</h2>
+            <ul>
+              <li>ElastiCache improves performance by reducing repeated database reads</li>
+              <li>Memcached is simple and fast for key-value caching</li>
+              <li>Private networking still matters for cache services</li>
+              <li>Security groups control who can reach the cache layer</li>
+              <li>Application integration becomes cleaner with reusable cache functions</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This step made the architecture more realistic by adding a proper
+              caching layer between the application and the database. Instead of
+              hitting the database for every repeated request, the application
+              can now return commonly used data much faster.
+            </p>
+
+            <p>
+              It also showed that performance is not only about faster servers.
+              Good design choices, such as using a private cache layer with the
+              right integration pattern, can make a big difference in how an
+              application behaves under load.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

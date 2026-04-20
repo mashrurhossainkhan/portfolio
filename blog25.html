@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on using Amazon CloudFront to improve global performance for the vProfile application, add caching in front of the load balancer, and connect a secure custom domain."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Improving vProfile Performance with Amazon CloudFront | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Improving vProfile Performance with Amazon CloudFront</h1>
+            <p>
+              A practical walkthrough of placing Amazon CloudFront in front of
+              the vProfile application to improve global delivery, reduce
+              latency, and secure the public entry point with HTTPS.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              After the vProfile application was fully deployed on Elastic
+              Beanstalk, the next improvement was performance for users who are
+              far away from the AWS Region hosting the application. This is
+              where <strong>Amazon CloudFront</strong> becomes useful.
+            </p>
+
+            <p>
+              Instead of sending every request directly to the application load
+              balancer from one central region, CloudFront introduces a global
+              edge layer. It can cache eligible content closer to users and
+              forward requests through AWS’s edge network to the origin.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> CloudFront improves delivery by
+              placing a globally distributed layer in front of the application,
+              which can reduce latency and offload repeated requests from the
+              origin.
+            </div>
+
+            <h2>The Problem Before CloudFront</h2>
+            <p>
+              If the application is hosted in a single AWS Region, users near
+              that region usually experience better response times than users in
+              distant locations.
+            </p>
+
+            <div class="code-block">
+Users near the origin region   -> Lower latency
+Users far from the origin      -> Higher latency
+            </div>
+
+            <p>
+              That latency difference becomes more noticeable when users are
+              distributed across different continents.
+            </p>
+
+            <h2>What CloudFront Does</h2>
+            <p>
+              Amazon CloudFront is AWS’s content delivery network. It uses a
+              worldwide network of edge locations and routes viewers to the
+              edge location with the lowest latency for them.
+            </p>
+
+            <div class="code-block">
+User -> Nearest CloudFront edge -> Origin when needed
+            </div>
+
+            <div class="tip-box">
+              If content is already cached at the edge, CloudFront can return
+              it immediately. If not, it retrieves it from the origin and then
+              serves it to the user.
+            </div>
+
+            <h2>Architecture Before and After</h2>
+
+            <h3>Before CloudFront</h3>
+            <div class="code-block">
+User -> Load Balancer -> Beanstalk EC2
+            </div>
+
+            <h3>After CloudFront</h3>
+            <div class="code-block">
+User -> CloudFront -> Load Balancer -> Beanstalk EC2
+            </div>
+
+            <p>
+              In this design, CloudFront sits in front of the load balancer and
+              becomes the public-facing entry point for the application.
+            </p>
+
+            <h2>Choose the Correct Origin</h2>
+            <p>
+              For this setup, the correct CloudFront origin is the
+              <strong>Application Load Balancer</strong> created for the
+              Beanstalk environment, not the EC2 instances directly.
+            </p>
+
+            <div class="code-block">
+Origin = Application Load Balancer
+            </div>
+
+            <div class="warning-box">
+              <strong>Important:</strong> using the load balancer as the origin
+              keeps traffic flowing through the intended application entry layer
+              instead of bypassing Beanstalk’s load balancing design.
+            </div>
+
+            <h2>Create the CloudFront Distribution</h2>
+            <p>
+              The next step is to create a CloudFront distribution and point it
+              to the load balancer origin. This adds the CDN layer in front of
+              the running application.
+            </p>
+
+            <ul>
+              <li>Open CloudFront and create a new distribution</li>
+              <li>Select the Beanstalk load balancer as the origin</li>
+              <li>Review caching and protocol settings carefully</li>
+            </ul>
+
+            <h2>Viewer Protocol Policy</h2>
+            <p>
+              One of the key security-related settings is how CloudFront handles
+              HTTP and HTTPS from viewers. For production traffic, redirecting
+              HTTP to HTTPS is the cleaner choice.
+            </p>
+
+            <div class="code-block">
+Viewer protocol policy:
+Redirect HTTP to HTTPS
+            </div>
+
+            <p>
+              This makes sure users end up on a secure connection at the edge
+              layer.
+            </p>
+
+            <h2>Allowed Methods and Caching</h2>
+            <p>
+              CloudFront can forward different sets of HTTP methods to the
+              origin depending on the application needs. For dynamic web
+              applications, this matters because not all traffic is simple
+              static content.
+            </p>
+
+            <div class="code-block">
+Possible allowed methods:
+GET, HEAD
+GET, HEAD, OPTIONS
+GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE
+            </div>
+
+            <p>
+              If the application needs form submissions, APIs, or dynamic
+              actions, the broader allowed-methods option may be required. But
+              that does not mean every method is cached. CloudFront mainly
+              caches responses for safe methods such as <code>GET</code> and
+              <code>HEAD</code>.
+            </p>
+
+            <h2>HTTPS and Custom Domain Setup</h2>
+            <p>
+              To use a custom domain with CloudFront, the distribution must have
+              an alternate domain name and a valid TLS certificate that covers
+              that domain.
+            </p>
+
+            <div class="code-block">
+Alternate domain name:
+app.yourdomain.com
+            </div>
+
+            <p>
+              When using ACM with CloudFront, the certificate must be created or
+              available in <code>us-east-1</code>. After attaching the
+              certificate, the custom domain can be associated with the
+              distribution.
+            </p>
+
+            <div class="tip-box">
+              CloudFront only supports ACM certificates for viewer connections
+              when the certificate is in the US East (N. Virginia) region.
+            </div>
+
+            <h2>Update DNS to Point to CloudFront</h2>
+            <p>
+              Once the distribution is deployed and the custom domain is added,
+              DNS needs to be updated so traffic goes to CloudFront instead of
+              directly to the previous application endpoint.
+            </p>
+
+            <div class="code-block">
+Type: CNAME or alias
+Name: app
+Value: dxxxxx.cloudfront.net
+            </div>
+
+            <p>
+              The exact record type depends on the DNS provider and the domain
+              setup, but the goal is the same: the custom domain should resolve
+              to the CloudFront distribution.
+            </p>
+
+            <h2>Optional Security Layer with AWS WAF</h2>
+            <p>
+              CloudFront also works well with <strong>AWS WAF</strong> when the
+              goal is to add request filtering and extra edge protection for web
+              traffic.
+            </p>
+
+            <ul>
+              <li>Filter common web attack patterns</li>
+              <li>Apply rules at the edge before requests hit the origin</li>
+              <li>Add an extra control layer in front of the application</li>
+            </ul>
+
+            <h2>Final Architecture</h2>
+            <div class="code-block">
+User -> CloudFront -> Load Balancer -> Beanstalk EC2
+                                    -> RDS
+                                    -> Memcached
+                                    -> RabbitMQ
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>CloudFront improves delivery for geographically distributed users</li>
+              <li>The load balancer is the right origin for this Beanstalk setup</li>
+              <li>Viewer HTTPS policy is an important security decision</li>
+              <li>Custom domain and certificate setup must be handled carefully</li>
+              <li>CloudFront adds both performance and architectural polish</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              Adding CloudFront made the vProfile deployment feel more complete.
+              Instead of exposing only a region-bound application endpoint, the
+              project now uses a globally distributed front layer that improves
+              delivery and gives more control over public traffic.
+            </p>
+
+            <p>
+              It also highlighted an important design lesson: performance is not
+              just about bigger servers. Sometimes the better solution is to
+              place content and traffic controls closer to users.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

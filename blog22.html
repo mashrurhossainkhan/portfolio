@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on understanding what a private AWS RDS instance can and cannot show through the AWS console, and how to access the database securely later."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Understanding Private RDS Access from the AWS Console | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Understanding Private RDS Access from the AWS Console</h1>
+            <p>
+              A practical explanation of what the AWS RDS console can show for a
+              private database, what it cannot do directly, and how to connect
+              safely when database access is needed later.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              While setting up the backend of the vProfile project, I reached an
+              important question: after initializing the database inside Amazon
+              RDS, can I later go into the AWS console and directly get my
+              database information from there?
+            </p>
+
+            <p>
+              The answer is <strong>yes and no</strong>. The AWS console gives
+              important details such as endpoint, port, engine, security group,
+              subnet group, and monitoring. But it does not behave like a MySQL
+              client where I can directly browse tables or run SQL queries on a
+              private RDS instance.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> the RDS console is for managing
+              infrastructure and settings, while real database queries still
+              need a trusted client path such as EC2 in the same VPC.
+            </div>
+
+            <h2>Understanding the Main Idea</h2>
+            <p>
+              In this project, the RDS database was created as a
+              <strong>private database</strong>. That means it is not open to
+              the public internet, so I cannot just open a browser, click inside
+              the RDS page, and view table data like a database management tool.
+            </p>
+
+            <div class="code-block">
+Your Laptop -> RDS          No
+Browser -> RDS              No
+AWS Console UI -> SQL       No
+
+EC2 in same VPC -> RDS      Yes
+Beanstalk app in same VPC   Yes
+            </div>
+
+            <p>This is actually a good thing because it keeps the database secure.</p>
+
+            <h2>What the AWS RDS Console Can Show Me</h2>
+            <p>
+              If I open the database from the RDS section in AWS, I can still
+              get many useful operational details from the console.
+            </p>
+
+            <ul>
+              <li>DB identifier or database instance name</li>
+              <li>Database engine, such as MySQL</li>
+              <li>Endpoint address</li>
+              <li>Port number, usually <code>3306</code> for MySQL</li>
+              <li>Status, such as creating or available</li>
+              <li>VPC and subnet group information</li>
+              <li>Security groups attached to the instance</li>
+              <li>Monitoring and performance metrics</li>
+              <li>Storage and instance class details</li>
+            </ul>
+
+            <div class="tip-box">
+              <strong>Most important detail:</strong> the
+              <strong>endpoint</strong> is usually the key value to save,
+              because the application and MySQL client both need it to connect.
+            </div>
+
+            <h2>What the AWS RDS Console Cannot Show Me Directly</h2>
+            <p>
+              This is the part that confused me at first. The RDS console is a
+              management dashboard, not a full SQL tool.
+            </p>
+
+            <p>So from the regular RDS console page, I cannot directly do this:</p>
+
+            <div class="code-block">
+SELECT * FROM users;
+SHOW TABLES;
+INSERT INTO orders VALUES (...);
+            </div>
+
+            <p>In simple terms:</p>
+
+            <div class="code-block">
+RDS Console = Infrastructure and settings dashboard
+MySQL Client = Actual database querying tool
+            </div>
+
+            <h2>Where My Data Is Actually Stored</h2>
+            <p>
+              The data is stored inside the RDS MySQL database itself, not
+              inside the temporary EC2 instance that I launched for
+              initialization.
+            </p>
+
+            <div class="code-block">
+SQL File
+  -> Temporary EC2
+  -> RDS MySQL Database
+  -> accounts database
+  -> tables and records
+            </div>
+
+            <p>
+              The temporary EC2 instance was only used as a bridge because the
+              database was private. Once the SQL schema was imported, the real
+              data lived inside RDS.
+            </p>
+
+            <div class="tip-box">
+              Deleting the temporary EC2 instance does not remove the database.
+              The real data remains stored inside RDS.
+            </div>
+
+            <h2>Why I Could Not Access RDS Directly from My Browser</h2>
+            <p>
+              During setup, public access was disabled for the database. That
+              means it is reachable only from trusted resources inside the same
+              VPC, such as Beanstalk EC2 instances or another EC2 instance used
+              for admin work.
+            </p>
+
+            <div class="code-block">
+Public Access = No
+            </div>
+
+            <p>So AWS is basically saying:</p>
+
+            <div class="code-block">
+"Your database is private. Only internal resources can talk to it."
+            </div>
+
+            <p>This is one of the standard security best practices in AWS.</p>
+
+            <h2>Then How Can I Access the Database Later?</h2>
+            <p>
+              Even after deleting the temporary EC2 instance, there are still
+              several safe ways to access the database later if needed.
+            </p>
+
+            <h3>1. Through the application</h3>
+            <p>
+              The Beanstalk application can connect to RDS using the endpoint,
+              username, password, and database name.
+            </p>
+
+            <div class="code-block">
+DB_HOST=your-rds-endpoint.amazonaws.com
+DB_PORT=3306
+DB_USER=admin
+DB_PASS=your-password
+DB_NAME=accounts
+            </div>
+
+            <h3>2. Launch another temporary EC2 instance</h3>
+            <p>
+              If I want to run SQL manually again, I can create another EC2
+              instance inside the same VPC, install the MySQL client, allow the
+              correct security group rule, and connect from there.
+            </p>
+
+            <h3>3. Use a secure tunnel from local machine</h3>
+            <p>
+              In more advanced setups, I can connect from my laptop through an
+              SSH tunnel or Session Manager, without making the database public.
+            </p>
+
+            <h2>MySQL Client Example</h2>
+            <p>
+              Here is the kind of command used from an EC2 instance to connect
+              to the RDS database:
+            </p>
+
+            <div class="code-block">
+mysql -h your-rds-endpoint.amazonaws.com -u admin -p accounts
+            </div>
+
+            <p>After that, I can run:</p>
+
+            <div class="code-block">
+show tables;
+            </div>
+
+            <p>
+              This is how I can verify that the schema import worked and the
+              database is ready.
+            </p>
+
+            <h2>Can AWS Query Editor Help?</h2>
+            <p>
+              AWS does have a Query Editor feature in some cases, but it is not
+              automatically available for every database setup. It may require
+              extra configuration such as IAM permissions and secrets
+              management.
+            </p>
+
+            <p>
+              For a simple project setup, using an EC2 instance in the same VPC
+              is usually easier and more predictable.
+            </p>
+
+            <h2>Simple Comparison</h2>
+            <div class="code-block">
+RDS Console:
+- View endpoint
+- View port
+- View status
+- View security group
+- View metrics
+
+MySQL Client:
+- Show tables
+- Run SELECT queries
+- Insert and update data
+- Import schema
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>RDS console is for management, not full SQL querying</li>
+              <li>A private RDS instance is intentionally not public</li>
+              <li>The temporary EC2 instance is only a bridge, not storage</li>
+              <li>The real data stays inside RDS after EC2 is deleted</li>
+              <li>
+                The application connects later using endpoint, username,
+                password, and database name
+              </li>
+            </ul>
+
+            <h2>Final Thoughts</h2>
+            <p>
+              This was a very useful learning point because it helped separate
+              two ideas that can easily get mixed up: managing infrastructure
+              through the AWS console and accessing actual database contents
+              through a SQL client.
+            </p>
+
+            <p>
+              The AWS console helps manage and monitor the database, but if I
+              want to inspect real table data inside a private RDS instance, I
+              still need a trusted path such as an EC2 instance in the same VPC,
+              application access, or a secure tunnel.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

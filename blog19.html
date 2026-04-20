@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on creating a private AWS RDS database for the vProfile re-architecture project, including subnet groups, security groups, and application connectivity."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Creating AWS RDS for vProfile Re-Architecture | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Creating AWS RDS for vProfile Re-Architecture</h1>
+            <p>
+              A practical walkthrough of launching a private RDS database for
+              the vProfile project and connecting it safely to the application
+              through backend networking and security groups.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              After preparing the backend security group in the previous step,
+              the next important task in the vProfile re-architecture project
+              was creating the database layer. In this stage, the focus moved to
+              <strong>AWS RDS</strong>, which gives us a managed relational
+              database without having to install and maintain MySQL manually on
+              EC2.
+            </p>
+
+            <p>
+              This part of the project helped me understand how a database fits
+              into a private application architecture. The database should be
+              available to the application, but it should not be exposed to the
+              public internet.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> keep the database private, attach it
+              to the backend security group, and place it inside the correct
+              private subnets so only trusted application resources can connect.
+            </div>
+
+            <h2>Why Use RDS Instead of Installing MySQL on EC2?</h2>
+            <p>
+              It is possible to run a database on EC2, but that means handling
+              installation, backups, patching, monitoring, and recovery
+              manually. RDS reduces that operational work and gives a much
+              cleaner setup for a project like this.
+            </p>
+
+            <p>Using RDS gives several advantages:</p>
+
+            <ul>
+              <li>Managed database operations</li>
+              <li>Automated backups and easier recovery</li>
+              <li>Better integration with VPC networking and security groups</li>
+              <li>Cleaner separation between app and database layers</li>
+            </ul>
+
+            <h2>How the Database Fits into the Architecture</h2>
+            <p>
+              In this re-architected setup, the database is one part of the
+              private backend layer. The application talks to it from inside the
+              AWS network rather than over the public internet.
+            </p>
+
+            <div class="code-block">
+User -> Load Balancer -> Elastic Beanstalk EC2 -> RDS
+                                             -> Amazon MQ
+                                             -> ElastiCache
+            </div>
+
+            <p>
+              That means the database should be reachable only from trusted
+              internal resources, especially the application instances.
+            </p>
+
+            <h2>Step 1: Start Creating the RDS Instance</h2>
+            <p>
+              The instructor moved to the <strong>RDS</strong> service in AWS
+              and started the database creation wizard. The database was created
+              in the same project environment so it could later be connected to
+              Elastic Beanstalk and the other backend services.
+            </p>
+
+            <ol>
+              <li>Open <strong>AWS Management Console</strong></li>
+              <li>Go to <strong>RDS</strong></li>
+              <li>Click <strong>Create database</strong></li>
+              <li>Select the appropriate engine for the application</li>
+            </ol>
+
+            <p>
+              Since vProfile uses a relational database, the goal here was to
+              launch a managed MySQL-style backend rather than building it from
+              scratch on a virtual machine.
+            </p>
+
+            <h2>Step 2: Keep the Database Private</h2>
+            <p>
+              One of the most important design decisions was making sure the RDS
+              instance stayed private. A production-style database should not be
+              publicly open unless there is a very specific reason and strong
+              controls around it.
+            </p>
+
+            <p>That private design depends on two things:</p>
+
+            <ul>
+              <li>Using the correct VPC and subnet placement</li>
+              <li>Attaching the right backend security group</li>
+            </ul>
+
+            <div class="tip-box">
+              <strong>Good cloud design:</strong> users never connect directly
+              to the database. Requests go through the application layer, and
+              the application connects to the database privately.
+            </div>
+
+            <h2>Step 3: Use a DB Subnet Group</h2>
+            <p>
+              RDS needs to know which subnets it can use. This is where a
+              <strong>DB subnet group</strong> becomes important. It tells AWS
+              where the database can live inside the VPC.
+            </p>
+
+            <p>
+              The subnet group should use private subnets so the database stays
+              away from direct public access.
+            </p>
+
+            <div class="code-block">
+VPC
+|- Public subnets: load balancer
+|- Private app subnets: Beanstalk EC2
+|- Private DB subnets: RDS
+            </div>
+
+            <p>
+              This separation makes the network cleaner and helps enforce the
+              layered architecture.
+            </p>
+
+            <h2>Step 4: Attach the Backend Security Group</h2>
+            <p>
+              In the previous blog step, a backend security group was created to
+              control trusted communication between backend resources. This same
+              group is important here because the database should use it as part
+              of the private backend layer.
+            </p>
+
+            <p>The idea is:</p>
+
+            <ul>
+              <li>Backend resources can communicate internally when needed</li>
+              <li>The application layer can later be allowed through SG rules</li>
+              <li>The database remains blocked from random public traffic</li>
+            </ul>
+
+            <div class="code-block">
+RDS security source:
+Backend SG
+Later allow:
+Beanstalk app SG -> Backend SG
+            </div>
+
+            <h2>Step 5: Set Initial Database Configuration</h2>
+            <p>
+              During creation, the database also needs core configuration such
+              as instance name, database name, master username, and password.
+              These values are important because the application will later use
+              them in its connection settings.
+            </p>
+
+            <p>At this stage, it is important to store securely:</p>
+
+            <ul>
+              <li>Database endpoint</li>
+              <li>Database name</li>
+              <li>Username</li>
+              <li>Password</li>
+              <li>Port number</li>
+            </ul>
+
+            <p>
+              The application cannot connect correctly unless these details
+              match the configuration it expects.
+            </p>
+
+            <h2>Step 6: Launch and Verify the Instance</h2>
+            <p>
+              Once the settings were reviewed, the RDS instance was created.
+              After AWS finished provisioning it, the key task was checking that
+              the instance was available and that its endpoint could be used by
+              the application layer later.
+            </p>
+
+            <p>At this point, the database is not something a user visits in a browser. Instead, verification is about making sure:</p>
+
+            <ul>
+              <li>The instance status is healthy</li>
+              <li>The database lives in the intended VPC and subnets</li>
+              <li>The correct security group is attached</li>
+              <li>The endpoint is ready for application use</li>
+            </ul>
+
+            <h2>Why This Step Matters in the Project</h2>
+            <p>
+              This is the point where the architecture starts becoming more
+              realistic. Instead of a single machine doing everything, the
+              application is being separated into layers, each with its own
+              role.
+            </p>
+
+            <p>That separation gives several benefits:</p>
+
+            <ul>
+              <li>Better security through isolation</li>
+              <li>Clearer responsibility for each service</li>
+              <li>Easier scaling and maintenance</li>
+              <li>A more production-style cloud design</li>
+            </ul>
+
+            <div class="highlight-box">
+              <strong>Big takeaway:</strong> creating the database is not just
+              about storing data. It is about placing the database in the right
+              network, securing access properly, and preparing the application
+              to connect to it in a controlled way.
+            </div>
+
+            <h2>Common Mistakes to Avoid</h2>
+            <div class="warning-box">
+              <strong>Things to watch carefully:</strong>
+              <ul class="mb-0">
+                <li>Do not make the database publicly accessible by mistake</li>
+                <li>Do not attach the wrong security group</li>
+                <li>Do not lose the DB endpoint and credentials</li>
+                <li>Do not place the database in the wrong subnet group</li>
+              </ul>
+            </div>
+
+            <h2>What I Learned from This Step</h2>
+            <ul>
+              <li>RDS is much more than just "database hosting"</li>
+              <li>Subnet groups are important for private placement</li>
+              <li>Security groups control who can reach the database</li>
+              <li>Application architecture becomes stronger when layers are separated</li>
+              <li>Private databases are a core part of secure cloud design</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This step moved the vProfile re-architecture project closer to a
+              real production layout. The RDS instance was created inside the
+              right private network boundary, connected to the backend security
+              design, and prepared for later application connectivity.
+            </p>
+
+            <p>
+              After this, the next steps can focus on wiring the application to
+              the database and continuing the rest of the backend service setup
+              in a much more structured way.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs"><- Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

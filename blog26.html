@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on understanding CloudFront caching trade-offs, stale data, TTL, invalidation, and the difference between caching static content and forwarding dynamic requests."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Understanding CloudFront Caching in Real-World Systems | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>Understanding CloudFront Caching in Real-World Systems</h1>
+            <p>
+              A practical explanation of why CloudFront can sometimes return
+              older data, why that is not a flaw, and how real systems manage
+              caching for both performance and correctness.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              While learning Amazon CloudFront, I ran into an important
+              question: if product data changes in the database, can users still
+              see an older cached version through CloudFront?
+            </p>
+
+            <p>
+              At first, this felt like a serious problem. But the more I
+              understood CDN behavior, the more it became clear that this is not
+              a CloudFront mistake. It is a normal design trade-off between
+              speed and freshness.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main idea:</strong> CloudFront is a performance layer, not
+              the source of truth. It speeds up delivery by caching content, so
+              developers must decide carefully what should be cached and what
+              should always come from the backend.
+            </div>
+
+            <h2>The Core Confusion</h2>
+            <p>Imagine a product page is requested and cached:</p>
+
+            <div class="code-block">
+User A -> CloudFront -> Product price = $100
+Response cached at edge
+            </div>
+
+            <p>Then the backend database updates the price:</p>
+
+            <div class="code-block">
+Database price changes -> $120
+            </div>
+
+            <p>A later request could still receive the cached response:</p>
+
+            <div class="code-block">
+User B -> CloudFront -> Cached response = $100
+            </div>
+
+            <div class="warning-box">
+              <strong>Yes, this can happen:</strong> CloudFront can serve stale
+              content until the cached object expires or is invalidated.
+            </div>
+
+            <h2>Why This Happens</h2>
+            <p>
+              CloudFront is designed to reduce latency and lower load on the
+              origin. It does that by storing responses closer to users at edge
+              locations.
+            </p>
+
+            <div class="code-block">
+Trade-off:
+Freshness vs Speed
+            </div>
+
+            <p>
+              That trade-off is normal in caching systems. Faster responses
+              usually come from reusing previously generated content instead of
+              asking the backend to recreate it every time.
+            </p>
+
+            <h2>How the Request Flow Changes</h2>
+
+            <h3>First Request</h3>
+            <div class="code-block">
+User -> CloudFront -> Load Balancer -> App -> Database
+                   -> Response cached
+            </div>
+
+            <h3>Later Request</h3>
+            <div class="code-block">
+User -> CloudFront -> Cached response
+            </div>
+
+            <p>
+              This is what makes CloudFront valuable for performance, but it is
+              also the reason developers must think carefully about cache
+              policies.
+            </p>
+
+            <h2>How Real Systems Handle This</h2>
+
+            <h3>1. Use TTL Carefully</h3>
+            <p>
+              CloudFront uses TTL behavior together with cache-related response
+              headers to decide how long content stays valid in the cache.
+            </p>
+
+            <div class="code-block">
+Example:
+TTL = 60 seconds
+            </div>
+
+            <p>
+              That means stale data may exist, but only for a limited window.
+            </p>
+
+            <h3>2. Invalidate Cached Objects</h3>
+            <p>
+              If content changes before the cache would normally expire,
+              CloudFront supports invalidation so the next request fetches a new
+              version from the origin.
+            </p>
+
+            <div class="code-block">
+Invalidate path:
+/product/123
+            </div>
+
+            <p>
+              This is useful when a specific file or route must be refreshed
+              immediately.
+            </p>
+
+            <h3>3. Do Not Cache Highly Dynamic Data</h3>
+            <p>
+              Some content changes too often or is too user-specific to be a
+              good fit for general CDN caching.
+            </p>
+
+            <ul>
+              <li>Shopping cart state</li>
+              <li>User-specific account data</li>
+              <li>Login-related responses</li>
+              <li>Rapidly changing transactional data</li>
+            </ul>
+
+            <div class="code-block">
+Dynamic requests -> Forward to backend
+            </div>
+
+            <h3>4. Cache Static Assets Aggressively</h3>
+            <p>
+              Static assets are usually the best place to use CloudFront
+              caching because they do not change per user and often do not
+              change frequently.
+            </p>
+
+            <div class="code-block">
+Good caching targets:
+CSS
+JavaScript
+Images
+Versioned frontend assets
+            </div>
+
+            <h2>Static vs Dynamic in Real Architecture</h2>
+            <div class="code-block">
+User -> CloudFront
+      -> Static content: cached
+      -> Dynamic/API requests: forwarded to backend
+            </div>
+
+            <p>
+              This is why CloudFront can speed up an application without making
+              every part of the system stale or incorrect.
+            </p>
+
+            <div class="tip-box">
+              A strong caching design usually means caching the right things,
+              not caching everything.
+            </div>
+
+            <h2>The Most Important Insight</h2>
+            <p>
+              CloudFront is doing exactly what it is supposed to do. The real
+              engineering decision is choosing which routes, files, headers, and
+              cache behaviors make sense for the application.
+            </p>
+
+            <div class="code-block">
+CloudFront = Speed layer
+Backend    = Source of truth
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>Caching improves speed but introduces freshness trade-offs</li>
+              <li>Stale content is normal unless cache behavior is designed carefully</li>
+              <li>TTL and invalidation are key tools for cache control</li>
+              <li>Static and dynamic content should not be treated the same way</li>
+              <li>Good DevOps thinking means understanding behavior, not just enabling services</li>
+            </ul>
+
+            <h2>Conclusion</h2>
+            <p>
+              This confusion turned out to be a useful lesson. It moved the idea
+              of CloudFront from “just a CDN” to something more practical: a
+              system that must be configured with business behavior in mind.
+            </p>
+
+            <p>
+              The real goal is not to cache everything. The goal is to cache the
+              right content in the right way so users get both speed and
+              correctness.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

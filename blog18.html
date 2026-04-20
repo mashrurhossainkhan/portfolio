@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical blog on AWS Elastic Beanstalk backend security groups, self-referencing rules, and why creating a key pair helps with EC2 troubleshooting."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>AWS Beanstalk Backend Security Group and Key Pair | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      .blog-header {
+        padding: 120px 0 60px;
+        background: #f8f9fa;
+      }
+
+      .blog-header h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        color: #5b5b5b;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 18px;
+      }
+
+      .blog-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 12px;
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #444;
+      }
+
+      .blog-content ul,
+      .blog-content ol {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px;
+        border-radius: 8px;
+        margin: 25px 0;
+      }
+
+      .highlight-box {
+        background: #f8f9fa;
+        border-left: 4px solid #ffc200;
+      }
+
+      .tip-box {
+        background: #eefaf3;
+        border-left: 4px solid #28a745;
+      }
+
+      .warning-box {
+        background: #fff3f3;
+        border-left: 4px solid #dc3545;
+      }
+
+      .code-block {
+        background: #212529;
+        color: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .blog-footer-nav {
+        margin-top: 50px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <h1>AWS Elastic Beanstalk Backend Security Group and Key Pair</h1>
+            <p>
+              A practical walkthrough of securing backend services for a
+              Beanstalk-based application by using a dedicated backend security
+              group, self-referencing rules, and a key pair for troubleshooting.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              In this part of the vProfile re-architecture project, the main
+              focus was preparing the backend access rules before deploying the
+              application. The application will run on
+              <strong>Elastic Beanstalk</strong>, while backend services like
+              <strong>RDS</strong>, <strong>Amazon MQ</strong>, and
+              <strong>ElastiCache</strong> should stay private inside AWS.
+            </p>
+
+            <p>
+              The goal was simple: let trusted services talk to each other
+              securely without exposing databases, caches, or message brokers
+              to the public internet.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Architecture idea:</strong> User → Load Balancer →
+              Beanstalk EC2 instances → Backend services like RDS, MQ, and
+              ElastiCache.
+            </div>
+
+            <h2>Why Create a Separate Backend Security Group?</h2>
+            <p>
+              Instead of managing separate network rules on every backend
+              service, the instructor created one dedicated backend security
+              group. That group can later be attached to all backend resources,
+              keeping the design cleaner and easier to manage.
+            </p>
+
+            <p>At this stage, the backend services included:</p>
+
+            <ul>
+              <li><strong>Amazon RDS</strong> for the database</li>
+              <li><strong>Amazon MQ</strong> for messaging</li>
+              <li><strong>ElastiCache</strong> for caching</li>
+            </ul>
+
+            <p>
+              These services may need to communicate internally, but they
+              should not be publicly reachable. A dedicated security group makes
+              that possible.
+            </p>
+
+            <h2>Step 1: Create the Security Group in EC2</h2>
+            <p>
+              The instructor opened the AWS console in the
+              <strong>North Virginia region</strong>, went to
+              <strong>EC2</strong>, and created a new security group. Even
+              though the resources are RDS, MQ, and ElastiCache, security
+              groups are managed at the VPC level and are often configured from
+              the EC2 section.
+            </p>
+
+            <ol>
+              <li>Open <strong>AWS Management Console</strong></li>
+              <li>Go to <strong>EC2</strong></li>
+              <li>Open <strong>Security Groups</strong></li>
+              <li>Click <strong>Create security group</strong></li>
+            </ol>
+
+            <p>The security group was named something like:</p>
+
+            <div class="code-block">vprofile-rearch-backend-sg</div>
+
+            <p>
+              This naming keeps it clear that the group belongs to the
+              re-architected vProfile backend setup.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Important:</strong> no inbound rule was added during the
+              initial creation. The group was created first, then edited after
+              AWS assigned it an ID.
+            </div>
+
+            <h2>Why No Rule at First?</h2>
+            <p>
+              The instructor wanted to allow traffic from the security group to
+              itself. AWS needs the actual <strong>security group ID</strong>
+              for that, and you only get that after the group exists.
+            </p>
+
+            <p>So the sequence becomes:</p>
+
+            <ol>
+              <li>Create the security group</li>
+              <li>Get its security group ID</li>
+              <li>Edit inbound rules</li>
+              <li>Add a rule that uses the same security group as the source</li>
+            </ol>
+
+            <h2>Step 2: Allow All Traffic Within the Same Group</h2>
+            <p>
+              After creation, the inbound rules were updated with a
+              self-referencing rule like this:
+            </p>
+
+            <div class="code-block">
+Type: All Traffic
+Source: This same security group ID
+Description: Backend services internal communication
+            </div>
+
+            <p>
+              This means any resource using this backend security group can talk
+              to another resource that also uses it.
+            </p>
+
+            <p>If these resources all use the same SG:</p>
+
+            <ul>
+              <li>RDS</li>
+              <li>Amazon MQ</li>
+              <li>ElastiCache</li>
+            </ul>
+
+            <p>then they can communicate privately with each other.</p>
+
+            <div class="tip-box">
+              <strong>Useful AWS pattern:</strong> instead of exposing ports to
+              the internet, use security group references to allow only trusted
+              internal communication.
+            </div>
+
+            <h2>What Does “Allow All Traffic Within Itself” Mean?</h2>
+            <p>
+              If a security group allows <strong>all traffic from itself</strong>,
+              any AWS resource using that group can send traffic to another
+              resource using the same group.
+            </p>
+
+            <div class="code-block">
+RDS  → ElastiCache   OK
+MQ   → RDS           OK
+App  → RDS           Not yet
+            </div>
+
+            <p>
+              At this point, only backend-to-backend communication is allowed.
+              The application layer will be trusted later.
+            </p>
+
+            <h2>Step 3: Save the Rule</h2>
+            <p>
+              Once the rule was added and saved, the backend security group was
+              ready for this stage. No public inbound rule like
+              <code>0.0.0.0/0</code> was added, because backend resources should
+              stay private.
+            </p>
+
+            <div class="warning-box">
+              <strong>Bad practice to avoid:</strong> do not open databases,
+              caches, or message brokers publicly unless there is a very
+              specific and well-secured reason.
+            </div>
+
+            <h2>Step 4: Beanstalk Will Be Added Later</h2>
+            <p>
+              The instructor explained that after Elastic Beanstalk creates the
+              environment, AWS will also create security groups for the
+              Beanstalk EC2 instances and the load balancer.
+            </p>
+
+            <p>That usually leads to this relationship:</p>
+
+            <ul>
+              <li>Load balancer security group sends traffic to app instances</li>
+              <li>Beanstalk EC2 instances receive traffic from the load balancer</li>
+            </ul>
+
+            <p>But one more backend rule will still be needed later:</p>
+
+            <div class="code-block">
+Allow traffic from Beanstalk EC2 security group → backend security group
+            </div>
+
+            <p>
+              That future rule is what allows the application layer to connect
+              to RDS, MQ, and ElastiCache.
+            </p>
+
+            <h2>Simple Traffic Flow</h2>
+            <p>The full flow is easy to picture like this:</p>
+
+            <ol>
+              <li>User sends a request</li>
+              <li>Load balancer receives it</li>
+              <li>Load balancer forwards it to Beanstalk EC2</li>
+              <li>The app needs data, cache, or messaging support</li>
+              <li>The app connects to RDS, MQ, or ElastiCache</li>
+            </ol>
+
+            <p>
+              So Beanstalk must eventually be trusted by the backend security
+              group, but that trust comes only after Beanstalk exists.
+            </p>
+
+            <h2>Step 5: Create a Key Pair for Troubleshooting</h2>
+            <p>
+              After the security group setup, the instructor created a
+              <strong>key pair</strong>. This is used for SSH access to the EC2
+              instances launched by Elastic Beanstalk.
+            </p>
+
+            <ol>
+              <li>Go to <strong>EC2</strong></li>
+              <li>Open <strong>Key Pairs</strong></li>
+              <li>Click <strong>Create key pair</strong></li>
+              <li>Name it something like <code>vprofile-rearch-key</code></li>
+              <li>Download the private key and store it safely</li>
+            </ol>
+
+            <p>
+              The key pair is not required for normal Beanstalk operation, but
+              it becomes very useful when troubleshooting.
+            </p>
+
+            <h2>Why Is the Key Pair Useful?</h2>
+            <p>SSH access helps when deployment issues happen, for example:</p>
+
+            <ul>
+              <li>The app does not start</li>
+              <li>Environment variables are wrong</li>
+              <li>A required service is unreachable</li>
+              <li>Logs contain unexpected errors</li>
+              <li>A package or process failed during deployment</li>
+            </ul>
+
+            <p>After logging in, troubleshooting might include commands like:</p>
+
+            <div class="code-block">
+cat /var/log/eb-engine.log
+cat /var/log/web.stdout.log
+ps aux
+df -h
+env
+            </div>
+
+            <div class="highlight-box">
+              <strong>Real-world takeaway:</strong> in managed platforms like
+              Elastic Beanstalk, you may not need SSH every day, but when
+              something breaks, access to the instance can save a lot of time.
+            </div>
+
+            <h2>Security Thinking Behind This Lesson</h2>
+            <p>
+              This part of the project is really about
+              <strong>network isolation and controlled trust</strong>.
+            </p>
+
+            <p>Good cloud architecture separates resources by role:</p>
+
+            <ul>
+              <li><strong>Public layer</strong> → load balancer</li>
+              <li><strong>Application layer</strong> → EC2 / Beanstalk</li>
+              <li><strong>Private backend layer</strong> → database, cache, broker</li>
+            </ul>
+
+            <p>
+              Each layer should only talk to the layers it actually needs. That
+              reduces risk and makes the overall design easier to secure.
+            </p>
+
+            <h2>What I Learned from This Lecture</h2>
+            <ul>
+              <li>Security groups are a major part of AWS architecture design</li>
+              <li>Backend services should usually stay in a private backend SG</li>
+              <li>Self-referencing SG rules allow controlled internal communication</li>
+              <li>Elastic Beanstalk creates security groups for app and load balancer layers</li>
+              <li>The backend SG must later trust the app SG</li>
+              <li>Key pairs help with SSH-based troubleshooting</li>
+            </ul>
+
+            <h2>My Practical Takeaway</h2>
+            <p>
+              This lesson made security groups feel much more important than
+              just another AWS setting. They are a design tool that controls
+              which part of the application can talk to which other part.
+            </p>
+
+            <p>
+              Instead of thinking only in terms of servers and services, I now
+              see the architecture more clearly in terms of who can access what,
+              which services remain private, and how trust is added in stages.
+            </p>
+
+            <h2>Conclusion</h2>
+            <p>
+              This was a small setup step, but it matters a lot for the full
+              architecture. First the backend security group was created, then a
+              self-referencing inbound rule was added so backend services could
+              communicate internally, and finally a key pair was created for
+              possible troubleshooting of the Beanstalk EC2 instances.
+            </p>
+
+            <p>
+              In the next stage of the project, backend services can be
+              launched with this security group and the Beanstalk application
+              layer can later be allowed to connect to them securely.
+            </p>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>
