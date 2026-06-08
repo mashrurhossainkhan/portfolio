@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical Jenkins troubleshooting blog about fixing disk space issues on an AWS EC2 instance by checking Linux storage, modifying an EBS root volume, and cleaning old files."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Fixing Jenkins Disk Space Issue on AWS EC2 | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      :root {
+        --ink: #203044;
+        --muted: #596575;
+        --line: #dce5ee;
+        --panel: #f7f9fc;
+        --accent: #176b8f;
+        --accent-2: #c77800;
+        --code-bg: #16202c;
+      }
+
+      .blog-header {
+        padding: 120px 0 68px;
+        background:
+          radial-gradient(circle at top left, rgba(23, 107, 143, 0.18), transparent 34%),
+          radial-gradient(circle at top right, rgba(199, 120, 0, 0.18), transparent 36%),
+          linear-gradient(180deg, #f8fbfd 0%, #edf3f8 100%);
+      }
+
+      .blog-badge {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(23, 107, 143, 0.1);
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .blog-header h1 {
+        font-size: 2.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--muted);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .hero-flow {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(23, 107, 143, 0.16);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 42px;
+        margin-bottom: 18px;
+        color: var(--ink);
+      }
+
+      .blog-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #434b57;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px 22px;
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .highlight-box {
+        background: #f7f9fc;
+        border-left: 4px solid var(--accent);
+      }
+
+      .tip-box {
+        background: #eef8f4;
+        border-left: 4px solid #2f9b67;
+      }
+
+      .warning-box {
+        background: #fff7ea;
+        border-left: 4px solid var(--accent-2);
+      }
+
+      .code-block {
+        background: var(--code-bg);
+        color: #f7fbff;
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 28px 0 14px;
+      }
+
+      .snapshot-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(18, 33, 53, 0.05);
+      }
+
+      .snapshot-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.02rem;
+      }
+
+      .lab-step {
+        margin-top: 44px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .step-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .blog-footer-nav {
+        margin-top: 52px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (max-width: 767px) {
+        .blog-header {
+          padding: 105px 0 56px;
+        }
+
+        .blog-header h1 {
+          font-size: 2.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <span class="blog-badge">Jenkins Troubleshooting</span>
+            <h1>Fixing Jenkins Disk Space Issue on AWS EC2</h1>
+            <p>
+              This lab covers a common Jenkins problem: running out of disk
+              space on a small EC2 root volume. I practiced checking Linux disk
+              usage, increasing the AWS EBS volume, and confirming the new
+              filesystem space.
+            </p>
+            <div class="hero-flow">
+              Jenkins Error → Linux Disk Check → EBS Volume Resize → Instance
+              Reboot → Filesystem Verification
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              Jenkins creates and stores many files while it runs: plugins,
+              build logs, job workspaces, Maven dependencies, temporary files,
+              archived artifacts, and build history. If Jenkins is running on
+              an AWS EC2 instance with a small root volume, storage can fill up
+              quickly.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main lesson:</strong> Jenkins is not only a CI/CD
+              application. It is also a server that needs normal operations
+              care, including disk monitoring, cleanup, and enough storage for
+              build activity.
+            </div>
+
+            <h2>The Problem</h2>
+            <p>
+              In this setup, Jenkins was running on an EC2 instance with the
+              default <strong>8 GB EBS root volume</strong>. After installing
+              plugins and running several jobs, Jenkins can fail with an error
+              like this:
+            </p>
+
+            <div class="code-block">No space left on device</div>
+
+            <p>
+              This means the Linux filesystem does not have enough available
+              space to continue writing files. For Jenkins, that can stop
+              builds, plugin installs, log writing, dependency downloads, or
+              artifact creation.
+            </p>
+
+            <h2>What Usually Consumes Jenkins Disk Space</h2>
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Workspaces</h3>
+                <p>
+                  Each job can leave checked-out source code, generated files,
+                  build outputs, and temporary folders.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Build history</h3>
+                <p>
+                  Jenkins keeps console logs, build metadata, and archived
+                  outputs unless cleanup policies are configured.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Dependencies</h3>
+                <p>
+                  Maven, npm, Docker, and other tools may cache dependencies on
+                  the Jenkins server.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Plugins</h3>
+                <p>
+                  Installed Jenkins plugins and their supporting files also
+                  consume space under the Jenkins home directory.
+                </p>
+              </div>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 1</span>
+              <h2>Check the Current Disk Usage</h2>
+              <p>
+                First, I logged in to the Jenkins EC2 server and switched to
+                the root user so I could inspect system storage clearly.
+              </p>
+
+              <div class="code-block">sudo -i
+df -h</div>
+
+              <p>
+                The <code>df -h</code> command shows filesystem usage in a
+                human-readable format. It shows the total size, used space,
+                available space, mounted path, and usage percentage.
+              </p>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 2</span>
+              <h2>Check the Disk and Partition Layout</h2>
+              <p>
+                Next, I checked the disk and partition information. This helped
+                me understand whether the full disk was small or whether the
+                partition/filesystem still needed to be expanded.
+              </p>
+
+              <div class="code-block">fdisk -l</div>
+
+              <div class="warning-box">
+                One important detail: <code>/dev/xvda</code> represents the
+                full disk, while <code>/dev/xvda1</code> represents a partition
+                inside that disk. The disk size and the usable filesystem size
+                may not always match until the partition and filesystem are
+                resized.
+              </div>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 3</span>
+              <h2>Increase the AWS EBS Volume Size</h2>
+              <p>
+                To fix the storage problem, I increased the Jenkins EC2 root
+                volume from 8 GB to 20 GB from the AWS Console.
+              </p>
+
+              <div class="code-block">EC2 → Volumes → Select Jenkins Root Volume → Actions → Modify Volume
+
+8 GB → 20 GB</div>
+
+              <p>
+                This increases the EBS storage attached to the instance. It is
+                the cloud storage layer, so the operating system still needs to
+                detect and use the new size afterward.
+              </p>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 4</span>
+              <h2>Reboot the Jenkins EC2 Instance</h2>
+              <p>
+                After modifying the volume, I rebooted the Jenkins EC2 instance
+                so the operating system could detect the updated storage size
+                cleanly.
+              </p>
+
+              <div class="code-block">EC2 → Instance State → Reboot Instance</div>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 5</span>
+              <h2>Verify the New Disk Size</h2>
+              <p>
+                Once the instance came back online, I logged in again and
+                checked the disk layout and filesystem usage.
+              </p>
+
+              <div class="code-block">sudo -i
+fdisk -l
+df -h</div>
+
+              <p>
+                After the resize, the disk showed around 20 GB. The root
+                filesystem showed around 19 GB of usable space, which is normal
+                because some space is reserved for system usage and filesystem
+                metadata.
+              </p>
+            </div>
+
+            <h2>Useful Cleanup Commands</h2>
+            <p>
+              Increasing the volume fixes the immediate storage limit, but
+              cleanup is still useful. Old packages, logs, images, and
+              containers can also consume a lot of space.
+            </p>
+
+            <div class="code-block">sudo apt clean
+sudo journalctl --vacuum-time=7d
+docker system prune -a</div>
+
+            <div class="warning-box">
+              Be careful with <code>docker system prune -a</code>. It removes
+              unused Docker images and containers, so it should only be run
+              when you understand what can be safely deleted.
+            </div>
+
+            <h2>What I Learned</h2>
+            <ul>
+              <li>Jenkins can quickly run out of disk space during CI/CD work.</li>
+              <li><code>df -h</code> shows filesystem usage clearly.</li>
+              <li><code>fdisk -l</code> helps inspect disks and partitions.</li>
+              <li>AWS EBS volumes can be resized from the EC2 console.</li>
+              <li>Build servers need storage monitoring, cleanup, and retention policies.</li>
+            </ul>
+
+            <div class="tip-box">
+              Increasing the EBS root volume from 8 GB to 20 GB is a simple
+              fix, but the bigger DevOps lesson is to monitor Jenkins storage
+              before jobs fail. CI/CD servers are production tools, and their
+              disk usage needs the same attention as application servers.
+            </div>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

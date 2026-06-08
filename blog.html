@@ -34,6 +34,24 @@
         max-width: 720px;
         margin: 0 auto;
       }
+
+      .blog-section-title {
+        margin-bottom: 1.5rem;
+      }
+
+      .interview-pick {
+        border-top: 4px solid #ffc200;
+      }
+
+      .interview-label {
+        color: #ffc200;
+        display: inline-block;
+        font-size: 13px;
+        font-weight: bold;
+        letter-spacing: 0.3px;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
     </style>
   </head>
   <body>
@@ -94,8 +112,8 @@
         <div class="blog-intro">
           <h1>All Blogs</h1>
           <p class="mt-3">
-            Explore writing on DevOps, Bash scripting, virtual machines, cloud
-            basics, and practical software engineering lessons.
+            Start with the interview-focused DevOps and cloud posts, then
+            explore the full archive of practical engineering notes.
           </p>
           <a href="index.html#blogs" class="btn custom-btn mt-3">
             Back to Home
@@ -106,6 +124,128 @@
 
     <section class="blog-listing">
       <div class="container">
+        <div class="blog-section-title text-center">
+          <h2 class="mt-3">Highlights</h2>
+        </div>
+
+        <div class="row mb-5">
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog34.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">CI/CD Pipeline</span>
+                <h2>Understanding Jenkins, Nexus and SonarQube</h2>
+                <p>
+                  Shows how Jenkins, SonarQube, and Nexus work together on AWS
+                  EC2 for CI, code quality checks, artifact storage, and
+                  security group access.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog29.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">Jenkins Lab</span>
+                <h2>What This Jenkins CI/CD Lab Actually Taught Me</h2>
+                <p>
+                  A strong practical post for explaining freestyle jobs, Java
+                  Maven builds, post-build actions, and repeatable delivery
+                  workflows.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog30.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">Jenkins Agent</span>
+                <h2>Connecting a Jenkins Agent Node on EC2</h2>
+                <p>
+                  Demonstrates EC2 node launch, security group access, Java
+                  setup, node configuration, job execution, and console output
+                  verification.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog31.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">Artifacts</span>
+                <h2>Jenkins Plugins, Variables, and Artifact Versioning</h2>
+                <p>
+                  Useful for discussing plugin setup, parameterized builds,
+                  timestamp values, build variables, and versioned WAR
+                  artifacts.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog17.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">AWS Project</span>
+                <h2>AWS Lift and Shift Project with vProfile</h2>
+                <p>
+                  A complete multi-tier AWS deployment story using EC2, S3,
+                  Route 53, an Application Load Balancer, and Auto Scaling.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog27.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info interview-pick p-4 h-100">
+                <span class="interview-label">Build & Deploy</span>
+                <h2>What This Maven and Tomcat Lab Actually Taught Me</h2>
+                <p>
+                  Good for explaining Maven builds, WAR packaging, Dockerized
+                  Tomcat deployment, and how source code becomes a running app.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="blog-section-title text-center">
+          <h2>All Posts</h2>
+        </div>
+
         <div class="row">
           <div class="col-lg-4 col-md-6 col-12 mb-4">
             <a
@@ -240,7 +380,9 @@
               style="display: block; color: inherit"
             >
               <div class="project-info p-4 h-100">
-                <h2>Understanding AWS Load Balancers, AMIs, and Launch Templates</h2>
+                <h2>
+                  Understanding AWS Load Balancers, AMIs, and Launch Templates
+                </h2>
                 <p>
                   A practical lesson on distributing traffic across multiple
                   servers and using AMIs and launch templates to scale more
@@ -258,7 +400,9 @@
               style="display: block; color: inherit"
             >
               <div class="project-info p-4 h-100">
-                <h2>Building an AWS Application Load Balancer with Two EC2 Servers</h2>
+                <h2>
+                  Building an AWS Application Load Balancer with Two EC2 Servers
+                </h2>
                 <p>
                   A hands-on walkthrough of launching multiple EC2 servers,
                   adding them to a target group, and routing traffic through an
@@ -350,9 +494,9 @@
               <div class="project-info p-4 h-100">
                 <h2>Understanding AWS RDS</h2>
                 <p>
-                  A practical breakdown of AWS managed databases, including
-                  high availability, read replicas, security, and real-world
-                  DevOps usage.
+                  A practical breakdown of AWS managed databases, including high
+                  availability, read replicas, security, and real-world DevOps
+                  usage.
                 </p>
                 <span><strong>Read more →</strong></span>
               </div>
@@ -386,8 +530,8 @@
               <div class="project-info p-4 h-100">
                 <h2>AWS Lift and Shift Project with vProfile</h2>
                 <p>
-                  A practical multi-tier AWS deployment using EC2, S3, Route
-                  53, an Application Load Balancer, and Auto Scaling for the
+                  A practical multi-tier AWS deployment using EC2, S3, Route 53,
+                  an Application Load Balancer, and Auto Scaling for the
                   vProfile application.
                 </p>
                 <span><strong>Read more →</strong></span>
@@ -402,7 +546,9 @@
               style="display: block; color: inherit"
             >
               <div class="project-info p-4 h-100">
-                <h2>AWS Elastic Beanstalk Backend Security Group and Key Pair</h2>
+                <h2>
+                  AWS Elastic Beanstalk Backend Security Group and Key Pair
+                </h2>
                 <p>
                   A practical walkthrough of securing private backend services
                   for Beanstalk with a dedicated security group, self-reference
@@ -476,8 +622,8 @@
                 <h2>Understanding Private RDS Access from the AWS Console</h2>
                 <p>
                   A practical explanation of what the AWS RDS console can show
-                  for a private database, what it cannot do directly, and how
-                  to connect safely later.
+                  for a private database, what it cannot do directly, and how to
+                  connect safely later.
                 </p>
                 <span><strong>Read more →</strong></span>
               </div>
@@ -547,9 +693,8 @@
               <div class="project-info p-4 h-100">
                 <h2>Understanding CloudFront Caching in Real-World Systems</h2>
                 <p>
-                  A practical explanation of stale cache, TTL, invalidation,
-                  and how to separate static caching from dynamic backend
-                  requests.
+                  A practical explanation of stale cache, TTL, invalidation, and
+                  how to separate static caching from dynamic backend requests.
                 </p>
                 <span><strong>Read more →</strong></span>
               </div>
@@ -568,6 +713,133 @@
                   A practical reflection on Maven builds, WAR packaging,
                   Dockerized Tomcat deployment, and the DevOps thinking behind
                   turning source code into a running application.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog28.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>Longest Substring Without Repeating Characters</h2>
+                <p>
+                  A step-by-step explanation of the sliding window approach for
+                  LeetCode #3, including the intuition, duplicate handling, and
+                  why a Map-based solution runs efficiently.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog29.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>What This Jenkins CI/CD Lab Actually Taught Me</h2>
+                <p>
+                  A practical reflection on Jenkins freestyle jobs, Java Maven
+                  builds, post-build actions, and how CI/CD turns source code
+                  into repeatable delivery workflows.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog30.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>Connecting a Jenkins Agent Node on EC2</h2>
+                <p>
+                  A practical Jenkins agent lab covering EC2 node launch,
+                  security group access, Java setup, node configuration, first
+                  job execution, and console output verification.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog31.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>Jenkins Plugins, Variables, and Artifact Versioning</h2>
+                <p>
+                  A hands-on Jenkins CI/CD lab covering plugin management, build
+                  variables, parameterized builds, timestamp values, and
+                  versioned WAR artifacts.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog32.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>Fixing Jenkins Disk Space Issue on AWS EC2</h2>
+                <p>
+                  A practical Jenkins troubleshooting note on checking Linux
+                  disk usage, resizing an AWS EBS root volume, rebooting the EC2
+                  instance, and verifying available space.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog33.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>What is SonarQube?</h2>
+                <p>
+                  A beginner-friendly DevOps explanation of SonarQube, static
+                  code analysis, quality gates, and how code quality checks fit
+                  inside a Jenkins CI pipeline.
+                </p>
+                <span><strong>Read more →</strong></span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <a
+              href="blog34.html"
+              class="text-decoration-none"
+              style="display: block; color: inherit"
+            >
+              <div class="project-info p-4 h-100">
+                <h2>Understanding Jenkins, Nexus and SonarQube</h2>
+                <p>
+                  A practical CI pipeline note explaining how Jenkins,
+                  SonarQube, and Nexus work together on AWS EC2, including
+                  artifact storage, code quality checks, and security group
+                  access.
                 </p>
                 <span><strong>Read more →</strong></span>
               </div>

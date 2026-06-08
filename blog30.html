@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical Jenkins agent lab showing how to launch an EC2 node, allow controller access, install Java, configure the Jenkins node, run a job, and verify console output."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Connecting a Jenkins Agent Node on EC2 | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      :root {
+        --ink: #203044;
+        --muted: #596575;
+        --line: #dce5ee;
+        --panel: #f7f9fc;
+        --accent: #176b8f;
+        --accent-2: #2f9b67;
+        --code-bg: #16202c;
+      }
+
+      .blog-header {
+        padding: 120px 0 68px;
+        background:
+          radial-gradient(circle at top left, rgba(23, 107, 143, 0.18), transparent 34%),
+          radial-gradient(circle at top right, rgba(47, 155, 103, 0.18), transparent 36%),
+          linear-gradient(180deg, #f8fbfd 0%, #edf3f8 100%);
+      }
+
+      .blog-badge {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(23, 107, 143, 0.1);
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .blog-header h1 {
+        font-size: 2.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--muted);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .hero-flow {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(23, 107, 143, 0.16);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 42px;
+        margin-bottom: 18px;
+        color: var(--ink);
+      }
+
+      .blog-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #434b57;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px 22px;
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .highlight-box {
+        background: #f7f9fc;
+        border-left: 4px solid var(--accent);
+      }
+
+      .tip-box {
+        background: #eef8f4;
+        border-left: 4px solid var(--accent-2);
+      }
+
+      .warning-box {
+        background: #fff7ea;
+        border-left: 4px solid #e88700;
+      }
+
+      .code-block {
+        background: var(--code-bg);
+        color: #f7fbff;
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 28px 0 14px;
+      }
+
+      .snapshot-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(18, 33, 53, 0.05);
+      }
+
+      .snapshot-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.02rem;
+      }
+
+      .lab-step {
+        margin-top: 44px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .step-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      figure.lab-shot {
+        margin: 26px 0;
+      }
+
+      .lab-shot img {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        box-shadow: 0 20px 40px rgba(19, 31, 48, 0.08);
+      }
+
+      .lab-shot figcaption {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .blog-footer-nav {
+        margin-top: 52px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (max-width: 767px) {
+        .blog-header {
+          padding: 105px 0 56px;
+        }
+
+        .blog-header h1 {
+          font-size: 2.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <span class="blog-badge">Jenkins Agent Lab</span>
+            <h1>Connecting a Jenkins Agent Node on EC2</h1>
+            <p>
+              This lab shows how a Jenkins controller can use a separate EC2
+              instance as an agent node. The goal is to prepare the node,
+              connect it from Jenkins, run a job on it, and confirm the result
+              from the console output.
+            </p>
+            <div class="hero-flow">
+              EC2 Agent → Security Group Access → Java Setup → Jenkins Node →
+              Job Execution → Console Verification
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              Jenkins agents are useful because the controller does not have to
+              run every build by itself. A separate agent can provide its own
+              CPU, memory, tools, workspace, and operating system environment.
+            </p>
+
+            <p>
+              In this lab, the agent is an EC2 instance. Jenkins connects to it
+              over the network, prepares a remote workspace, and sends the job
+              there when the job is assigned to that node.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main lesson:</strong> Jenkins agents make build work more
+              scalable because the controller coordinates the job while the
+              node performs the actual execution.
+            </div>
+
+            <h2>What This Setup Needs</h2>
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Jenkins controller</h3>
+                <p>
+                  The existing Jenkins server manages jobs, credentials, node
+                  configuration, and build history.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>EC2 agent node</h3>
+                <p>
+                  A separate EC2 instance is launched to work as the Jenkins
+                  build machine.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Network access</h3>
+                <p>
+                  The agent security group must allow the Jenkins controller to
+                  reach it over the required SSH port.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Java runtime</h3>
+                <p>
+                  Java is installed on the agent because Jenkins needs Java to
+                  run the remoting process.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Remote directory</h3>
+                <p>
+                  A directory such as <code>/opt</code> or a dedicated Jenkins
+                  folder gives the agent a stable workspace location.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Jenkins job</h3>
+                <p>
+                  A first test job confirms that Jenkins can schedule work on
+                  the new node successfully.
+                </p>
+              </div>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 1</span>
+              <h2>Launch an EC2 Instance for the Agent</h2>
+              <p>
+                The lab starts by launching a new EC2 instance that will become
+                the Jenkins agent. Keeping the agent separate from the
+                controller makes the setup closer to a real CI/CD environment,
+                where build workloads often run on dedicated machines.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/1.%20launch%20an%20instance.png"
+                  alt="AWS EC2 launch instance screen for the Jenkins agent"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The agent begins as a normal EC2 instance, then Jenkins
+                  connects to it after the required access and tools are ready.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 2</span>
+              <h2>Allow the Jenkins Controller to Reach the Agent</h2>
+              <p>
+                The agent node must allow traffic from the Jenkins controller.
+                In an EC2 setup, this usually means updating the agent security
+                group so SSH access is allowed from the Jenkins server's
+                private IP address or trusted source range.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/2.%20Allow%20jenkins%20ec2%20instance%20to%20entry.png"
+                  alt="EC2 security group allowing Jenkins controller access to the agent"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Jenkins cannot use an agent until the network path from the
+                  controller to the node is open.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 3</span>
+              <h2>Install Java and Prepare the Agent Directory</h2>
+              <p>
+                After connecting to the EC2 instance, the next step is to
+                install OpenJDK 21 and create a directory Jenkins can use for
+                agent files and job workspaces. This gives Jenkins a known
+                place to run commands and store temporary build data.
+              </p>
+
+              <div class="code-block">sudo apt update
+sudo apt install openjdk-21-jdk -y
+java -version
+sudo mkdir -p /opt/jenkins-agent
+sudo chown -R ubuntu:ubuntu /opt/jenkins-agent</div>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/3.%20install%20openjdk%2021%20and%20mkdir%20opt.png"
+                  alt="Terminal showing OpenJDK 21 installation and opt directory setup"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Java and a stable remote directory are basic requirements
+                  before Jenkins can run jobs cleanly on the node.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 4</span>
+              <h2>Add the EC2 Instance as a Jenkins Node</h2>
+              <p>
+                Inside Jenkins, the EC2 instance is added from the node
+                management page. This is where the node name, remote root
+                directory, labels, launch method, host, and credentials are
+                connected together.
+              </p>
+
+              <div class="warning-box">
+                For this lab note, also copy the required <code>.pem</code>
+                key code to the node and restrict its permissions. For example,
+                place it in the node user's home directory and run
+                <code>chmod 400 your-key.pem</code> so the key is not left with
+                open permissions.
+              </div>
+
+              <div class="code-block">scp -i controller-key.pem agent-key.pem ubuntu@AGENT_PRIVATE_IP:/home/ubuntu/agent-key.pem
+ssh ubuntu@AGENT_PRIVATE_IP
+chmod 400 /home/ubuntu/agent-key.pem</div>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/4.%20node%20in%20manage%20jenkins.png"
+                  alt="Jenkins node management screen for adding the EC2 agent"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The node configuration is the bridge between Jenkins and the
+                  EC2 instance that will run the job.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 5</span>
+              <h2>Run the First Job on the Agent</h2>
+              <p>
+                Once the node is connected, a first job is used to confirm that
+                Jenkins can schedule work on the agent. A small test job is a
+                good way to prove the connection before adding heavier build
+                steps.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/5.%20first%20job.png"
+                  alt="Jenkins first job configured for the agent node"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Running a simple job first makes it easier to separate
+                  connection problems from application build problems.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 6</span>
+              <h2>Check the Console Output</h2>
+              <p>
+                The console output is the final proof that Jenkins actually ran
+                the job. If the job was assigned correctly, the output should
+                show the remote workspace and the commands executed on the
+                agent node.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/Agent/6.%20console%20ourput.png"
+                  alt="Jenkins console output from the first agent job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Console output turns the agent setup from a configuration
+                  screen into evidence that the remote node is doing build
+                  work.
+                </figcaption>
+              </figure>
+            </div>
+
+            <h2>What I Learned</h2>
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Agents need preparation</h3>
+                <p>
+                  Jenkins can only use the node after the network, Java
+                  runtime, user permissions, and workspace path are ready.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Labels control placement</h3>
+                <p>
+                  Labels help Jenkins decide which jobs should run on which
+                  agent, especially when different nodes have different tools.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Console logs matter</h3>
+                <p>
+                  A successful console output is the clearest sign that the
+                  controller and agent are communicating properly.
+                </p>
+              </div>
+            </div>
+
+            <div class="tip-box">
+              A Jenkins agent setup is easiest to debug in this order: confirm
+              SSH/network access, confirm Java, confirm the remote directory,
+              confirm credentials, then run a small test job before using the
+              node for a real build.
+            </div>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

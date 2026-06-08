@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A practical reflection on a Jenkins CI/CD lab, covering freestyle jobs, Java Maven builds, post-build actions, and how pipeline thinking connects source code to deployable artifacts."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>What This Jenkins CI/CD Lab Actually Taught Me | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      :root {
+        --ink: #21314b;
+        --muted: #556070;
+        --line: #dbe4f0;
+        --panel: #f7f9fc;
+        --accent: #1f7a5c;
+        --accent-2: #f4a300;
+        --code-bg: #16202c;
+      }
+
+      .blog-header {
+        padding: 120px 0 68px;
+        background:
+          radial-gradient(circle at top left, rgba(31, 122, 92, 0.2), transparent 34%),
+          radial-gradient(circle at top right, rgba(244, 163, 0, 0.2), transparent 36%),
+          linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
+      }
+
+      .blog-badge {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(31, 122, 92, 0.1);
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .blog-header h1 {
+        font-size: 2.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--muted);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .hero-flow {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(31, 122, 92, 0.16);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 42px;
+        margin-bottom: 18px;
+        color: var(--ink);
+      }
+
+      .blog-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #434b57;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px 22px;
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .highlight-box {
+        background: #f7f9fc;
+        border-left: 4px solid var(--accent-2);
+      }
+
+      .tip-box {
+        background: #eef8f4;
+        border-left: 4px solid var(--accent);
+      }
+
+      .warning-box {
+        background: #fff7ea;
+        border-left: 4px solid #e88700;
+      }
+
+      .code-block {
+        background: var(--code-bg);
+        color: #f7fbff;
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 28px 0 14px;
+      }
+
+      .snapshot-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(18, 33, 53, 0.05);
+      }
+
+      .snapshot-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.02rem;
+      }
+
+      .lab-step {
+        margin-top: 44px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .step-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      figure.lab-shot {
+        margin: 26px 0;
+      }
+
+      .lab-shot img {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        box-shadow: 0 20px 40px rgba(19, 31, 48, 0.08);
+      }
+
+      .lab-shot figcaption {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .takeaway-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+        margin-top: 24px;
+      }
+
+      .takeaway-item {
+        padding: 20px;
+        border-radius: 14px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+
+      .takeaway-item h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+      }
+
+      .blog-footer-nav {
+        margin-top: 52px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (max-width: 767px) {
+        .blog-header {
+          padding: 105px 0 56px;
+        }
+
+        .blog-header h1 {
+          font-size: 2.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <span class="blog-badge">Jenkins CI/CD Lab</span>
+            <h1>What This Jenkins CI/CD Lab Actually Taught Me</h1>
+            <p>
+              This lab was not only about clicking through Jenkins screens. It
+              helped me understand how a CI/CD tool connects source code,
+              triggers, build steps, post-build actions, and final artifacts
+              into a repeatable delivery workflow.
+            </p>
+            <div class="hero-flow">
+              Source Code → Jenkins Job → Build Steps → Post-Build Actions →
+              Artifact and Delivery Feedback
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              I wanted this lab to be more than a sequence of screenshots. The
+              useful part was learning how Jenkins thinks: a job has a source,
+              a trigger, a build process, and some action that happens after
+              the build is done.
+            </p>
+
+            <p>
+              That mindset matters because CI/CD is not just automation. It is
+              a structured way to reduce manual repetition and make software
+              delivery more consistent.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main lesson:</strong> Jenkins makes more sense when I
+              stop seeing it as a dashboard and start seeing it as a delivery
+              engine that moves code through a defined workflow.
+            </div>
+
+            <h2>Tools Used in This Lab</h2>
+            <p>
+              After reviewing the screenshots, these were the main tools and
+              configurations visible in the Jenkins setup.
+            </p>
+
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Jenkins</h3>
+                <p>
+                  Jenkins was the CI/CD controller used to create jobs, manage
+                  build history, run build steps, and archive final artifacts.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Git and GitHub</h3>
+                <p>
+                  The Java project source was connected through Git from the
+                  GitHub repository <code>hkhcoder/vprofile-project.git</code>.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>JDK 17</h3>
+                <p>
+                  The Java job was configured to use <code>JDK17</code>, with
+                  another JDK option also visible in the Jenkins dropdown.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Apache Maven 3.9</h3>
+                <p>
+                  Jenkins used Maven as the build tool, with the build step set
+                  to <code>Invoke top-level Maven targets</code> and the goal
+                  <code>install</code>.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>WAR Artifact</h3>
+                <p>
+                  The build produced a deployable <code>vprofile-v2.war</code>
+                  file, which was then exposed through Jenkins build artifacts.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Artifact Archiving</h3>
+                <p>
+                  The post-build action was configured to archive
+                  <code>**/*.war</code>, which made the build output easy to
+                  keep and review after each run.
+                </p>
+              </div>
+            </div>
+
+            <h2>Why This Lab Matters</h2>
+            <p>
+              In real projects, the problem is rarely just writing code. Teams
+              also need a reliable way to fetch source code, run builds, create
+              artifacts, and provide clear feedback when something succeeds or
+              fails.
+            </p>
+
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Job structure</h3>
+                <p>
+                  Jenkins jobs are built from small pieces such as source code
+                  settings, triggers, build commands, and post-build actions.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Repeatability</h3>
+                <p>
+                  Once a job is configured, the same process can run again and
+                  again without relying on memory or manual steps.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Visibility</h3>
+                <p>
+                  Build history and console output make it much easier to
+                  understand what Jenkins did and where a problem happened.
+                </p>
+              </div>
+            </div>
+
+            <h2>Starting with the Jenkins Dashboard</h2>
+            <p>
+              The build history view immediately shows an important CI/CD idea:
+              every execution leaves a record. That means a build is not just a
+              one-time action. It becomes something traceable, reviewable, and
+              comparable over time.
+            </p>
+
+            <figure class="lab-shot">
+              <img
+                src="images/CICD/1.%20history.png"
+                alt="Jenkins dashboard showing build history"
+                loading="lazy"
+              />
+              <figcaption>
+                Build history is one of the first things that makes automation
+                feel real because every run leaves evidence behind.
+              </figcaption>
+            </figure>
+
+            <div class="lab-step">
+              <span class="step-label">Step 1</span>
+              <h2>Create a Freestyle Project</h2>
+              <p>
+                The lab began with a freestyle project. This is a useful
+                starting point because it exposes the main Jenkins building
+                blocks without requiring a full pipeline script.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/2.%20creating%20freestype%20project.png.png"
+                  alt="Jenkins screen for creating a freestyle project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  A freestyle project is simple, but it clearly shows how
+                  Jenkins organizes a job.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 2</span>
+              <h2>Add Purpose and Basic Project Information</h2>
+              <p>
+                Writing a project description may look minor, but it is part of
+                making automation maintainable. Clear job names and descriptions
+                help future users understand what the job is supposed to do.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/3.%20Description.png"
+                  alt="Jenkins project description settings"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Good automation is easier to maintain when the job explains
+                  its purpose instead of forcing people to guess.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 3</span>
+              <h2>Configure the Build Environment</h2>
+              <p>
+                Jenkins cannot build Java projects correctly unless the tool
+                configuration is ready. The JDK settings are a reminder that
+                CI/CD still depends on real runtime requirements underneath the
+                automation. In the screenshot, the Java project is set to use
+                <code>JDK17</code>, and the Jenkins node label is
+                <code>MavenBuilder</code>.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/4.%20JDK.png"
+                  alt="Jenkins JDK configuration for the job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Automation does not remove environment dependencies. It makes
+                  them explicit and repeatable.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 4</span>
+              <h2>Point Jenkins to the Source Code</h2>
+              <p>
+                A CI/CD job needs a clear source of truth. In Jenkins, the
+                source code section is where the job learns what repository or
+                code base it should pull from before doing any build work. The
+                screenshot shows Git selected with a GitHub repository URL and
+                the branch specifier set to <code>*/electron</code>.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/5.%20Source%20code.png"
+                  alt="Jenkins source code configuration"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The job only becomes useful once it knows exactly which code
+                  it is responsible for building.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 5</span>
+              <h2>Decide When the Job Should Run</h2>
+              <p>
+                Triggers are what turn a build job into part of a delivery
+                system. Whether the build starts manually, on a schedule, or
+                from a code event, Jenkins needs a rule for when to act.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/6.%20Trigger%20and%20ENV.png"
+                  alt="Jenkins trigger and environment settings"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Trigger settings define when automation wakes up and starts
+                  doing its work.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 6</span>
+              <h2>Add Build Steps and Post-Build Actions</h2>
+              <p>
+                This is where the job becomes a workflow. Build steps define
+                what Jenkins should execute, and post-build actions define what
+                should happen after that execution finishes.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/7.%20build%20steps%20and%20post%20build.png"
+                  alt="Jenkins build steps and post-build actions"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The real value of CI/CD appears when actions are arranged in
+                  a predictable sequence instead of being done manually.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 7</span>
+              <h2>Understand the Build Action Section</h2>
+              <p>
+                The build action area shows the actual task Jenkins will run.
+                In simple jobs, this may be a shell command. In larger jobs, it
+                can represent a more complex build flow.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/8.%20build%20actions.png"
+                  alt="Jenkins build action configuration"
+                  loading="lazy"
+                />
+                <figcaption>
+                  CI starts with telling Jenkins exactly how to convert source
+                  code into a meaningful output.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 8</span>
+              <h2>Use Post-Build Actions for Follow-Up Work</h2>
+              <p>
+                Post-build actions are important because a successful build is
+                often not the end of the story. Teams may archive artifacts,
+                send notifications, or trigger the next stage after the build.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/9.%20post%20build.png"
+                  alt="Jenkins post-build configuration"
+                  loading="lazy"
+                />
+                <figcaption>
+                  This section makes Jenkins feel closer to delivery work and
+                  not just raw command execution.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 9</span>
+              <h2>Run the Freestyle Job and Review the Output</h2>
+              <p>
+                Triggering the build is where configuration turns into evidence.
+                Once the job runs, Jenkins gives feedback through build status
+                and console output.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/10.%20build%20now.png"
+                  alt="Jenkins build now option for freestyle job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Clicking build is simple, but the important part is that the
+                  exact same configured workflow can now run repeatedly.
+                </figcaption>
+              </figure>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/11.%20console%20output.png"
+                  alt="Jenkins console output after running the job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Console output is where Jenkins becomes debuggable. It shows
+                  what actually happened instead of leaving the build as a black
+                  box.
+                </figcaption>
+              </figure>
+            </div>
+
+            <h2>Moving from a Simple Job to a Java Build</h2>
+            <p>
+              After the freestyle project, the lab moved into a more realistic
+              Java build job. This stage connected Jenkins more directly to the
+              kind of Maven-based project flow I had already seen in my earlier
+              build lab.
+            </p>
+
+            <div class="code-block">
+Source code -> Jenkins -> Build tool -> Artifact -> Next delivery step
+            </div>
+
+            <div class="tip-box">
+              This was the point where Jenkins stopped feeling like a generic
+              automation tool and started feeling like the coordinator for an
+              actual software delivery process.
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 10</span>
+              <h2>Create the Java Maven Project in Jenkins</h2>
+              <p>
+                The Java project setup showed how Jenkins can be pointed at a
+                real application workflow instead of a toy example. It is the
+                same idea as the freestyle job, but now the build logic matters
+                much more because it produces a real application artifact.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/12.%20java%20mvn%20project%20jenkins.png"
+                  alt="Jenkins project page for a Java Maven job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  This step connected Jenkins to a more realistic application
+                  build story.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 11</span>
+              <h2>Attach the Java Project Source</h2>
+              <p>
+                Source configuration matters even more in a real build because
+                Jenkins now needs the correct project files, including the
+                Maven structure that controls compilation and packaging.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/13.%20source%20code%20for%20java%20project.png"
+                  alt="Jenkins source code settings for the Java Maven project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Without the correct source configuration, the rest of the CI
+                  flow has nothing reliable to build.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 12</span>
+              <h2>Set Triggers and Environment for the Java Build</h2>
+              <p>
+                This part reinforced the same lesson from the first job:
+                automation still depends on clear start conditions and a known
+                environment. Jenkins becomes dependable when those conditions
+                are defined instead of assumed.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/14.%20trigger%20and%20env%20for%20java%20proj.png"
+                  alt="Jenkins trigger and environment settings for the Java project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  CI/CD reliability comes from making both the trigger and the
+                  environment predictable.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 13</span>
+              <h2>Define the Maven Build Steps</h2>
+              <p>
+                This is where Jenkins becomes tightly connected to the actual
+                build tool. Instead of running a random command, the job is now
+                explicitly designed to execute the Maven-based build flow for
+                the application. The screenshot shows Maven version
+                <code>3.9</code> with the goal set to <code>install</code>.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/15.%20build%20steps%20for%20java%20project.png"
+                  alt="Jenkins build steps for the Java Maven project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The build step is the heart of CI because it transforms code
+                  into something testable or deployable.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 14</span>
+              <h2>Configure Post-Build Actions for the Java Job</h2>
+              <p>
+                Post-build actions become especially useful once artifacts are
+                involved. This is the place where Jenkins can archive outputs,
+                publish reports, or prepare the result for the next stage in a
+                deployment chain. In this lab, Jenkins was configured to archive
+                <code>**/*.war</code>, which makes the generated package easy
+                to preserve and download later.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/16.%20post%20build%20actions%20for%20java%20project.png"
+                  alt="Jenkins post-build actions for the Java Maven job"
+                  loading="lazy"
+                />
+                <figcaption>
+                  This is where CI starts leaning toward CD because the build
+                  result can now be handled intentionally.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 15</span>
+              <h2>Run the Java Build and Check the Artifact</h2>
+              <p>
+                The final execution tied the whole lab together. Jenkins ran
+                the configured build, and the output showed the result of that
+                process as a generated WAR file.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/17.%20build%20now%20for%20java%20project.png"
+                  alt="Jenkins build now for the Java Maven project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  At this point, Jenkins was no longer just configured. It was
+                  actively producing build results.
+                </figcaption>
+              </figure>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/18.%20war%20file%20after%20build.png"
+                  alt="Generated WAR file after the Jenkins Java build"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The WAR file is the concrete output of the CI process and the
+                  handoff point to later deployment work.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="warning-box">
+              <strong>Important distinction:</strong> Jenkins does not replace
+              the build tool. It coordinates the process. Maven still handles
+              the project build logic, while Jenkins manages when and how that
+              build runs.
+            </div>
+
+            <h2>What the Lab Actually Taught Me</h2>
+            <div class="takeaway-list">
+              <div class="takeaway-item">
+                <h3>How CI is structured</h3>
+                <p>
+                  A useful build job needs source settings, execution rules, a
+                  build action, and clear output.
+                </p>
+              </div>
+              <div class="takeaway-item">
+                <h3>Why visibility matters</h3>
+                <p>
+                  Build history and console logs make automation easier to
+                  trust because I can inspect what happened.
+                </p>
+              </div>
+              <div class="takeaway-item">
+                <h3>Why artifacts matter</h3>
+                <p>
+                  The generated WAR file is proof that the build pipeline
+                  created something deployable, not just a success message.
+                </p>
+              </div>
+              <div class="takeaway-item">
+                <h3>How CI and build tools connect</h3>
+                <p>
+                  Jenkins coordinates the workflow, while Maven performs the
+                  Java project build logic underneath.
+                </p>
+              </div>
+              <div class="takeaway-item">
+                <h3>Why repeatability is powerful</h3>
+                <p>
+                  Once the job is configured, the same process can run
+                  consistently instead of depending on manual memory.
+                </p>
+              </div>
+              <div class="takeaway-item">
+                <h3>Why this is DevOps foundation</h3>
+                <p>
+                  CI/CD begins with understanding how code flows through
+                  automated steps toward a real deployment result.
+                </p>
+              </div>
+            </div>
+
+            <h2>My Biggest Takeaway</h2>
+            <p>
+              The most useful part of this Jenkins lab was realizing that
+              automation is still built on understanding. If I do not
+              understand the source, the build tool, the artifact, and the next
+              delivery step, then clicking through Jenkins will not help much.
+            </p>
+
+            <p>
+              But once I understand that flow, Jenkins becomes much easier to
+              reason about. It stops feeling like a complicated UI and starts
+              feeling like a clear system for turning repeatable engineering
+              steps into delivery automation.
+            </p>
+
+            <div class="tip-box">
+              This lab gave me a practical bridge from manual build work to
+              automated delivery thinking, which is exactly where CI/CD becomes
+              meaningful.
+            </div>
+
+            <h2>What I Want to Explore Next</h2>
+            <ul>
+              <li>Build the same flow with a Jenkins pipeline script</li>
+              <li>Connect Jenkins jobs to Git-based code change triggers</li>
+              <li>Deploy the WAR artifact automatically after a successful build</li>
+              <li>Compare Jenkins-based automation with GitHub Actions workflows</li>
+            </ul>
+
+            <h2>Jenkins Tools Setup</h2>
+            <p>
+              The screenshots at the end of the lab show another important
+              idea: before a Jenkins job can use tools like Java, Maven, or
+              Git, those tools are usually configured globally in
+              <strong>Manage Jenkins</strong>. This is different from the
+              job-level configuration.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Simple rule:</strong> first add tools in Jenkins global
+              settings, then select those tools inside the job configuration.
+            </div>
+
+            <div class="code-block">
+Manage Jenkins -> Tools
+                 -> Add JDK / Maven / Git / NodeJS
+Job Configuration -> Select JDK / Maven version
+                  -> Use the tool in build steps
+            </div>
+
+            <p>
+              In other words, Jenkins jobs do not magically know where Java or
+              Maven lives. The Jenkins administrator usually defines those
+              installations once, and the jobs reuse them later.
+            </p>
+
+            <div class="lab-step">
+              <span class="step-label">Step 16</span>
+              <h2>Open the Global Tools Area</h2>
+              <p>
+                From the Jenkins administration page, the <strong>Tools</strong>
+                section is where global tool paths and automatic installers are
+                managed. This is the starting point for adding build
+                dependencies that jobs can reuse.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/19.%20tools.png"
+                  alt="Jenkins administration page showing the Tools section"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The Tools page is part of Jenkins system configuration, not a
+                  single project job.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 17</span>
+              <h2>Review the Maven Configuration Defaults</h2>
+              <p>
+                Jenkins can keep default Maven settings providers here. This is
+                useful because Maven behavior can be centralized instead of
+                being repeated manually in every project.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/20.%20maven%20conf.png"
+                  alt="Jenkins Maven configuration defaults in the Tools page"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Global Maven configuration helps keep builds more consistent
+                  across multiple projects.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 18</span>
+              <h2>Add JDK Installations</h2>
+              <p>
+                The JDK installations page shows named Java runtimes such as
+                <code>JDK17</code> and <code>JDK21</code>. Once these are saved
+                globally, a job can simply choose the correct JDK by name.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/21.%20jdk%20installation.png"
+                  alt="Jenkins JDK installations page showing JDK17 and JDK21"
+                  loading="lazy"
+                />
+                <figcaption>
+                  This is why the job-level dropdown could later offer
+                  <code>JDK17</code> and <code>JDK21</code> as selectable
+                  options.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 19</span>
+              <h2>Add Git and Optional Gradle Tools</h2>
+              <p>
+                Jenkins can also define source-control and build tools globally.
+                In this screenshot, Git is configured with the executable path
+                set to <code>git</code>, and Gradle appears as another tool
+                category that could be added for Gradle-based projects.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/22.%20git%20and%20gradle.png"
+                  alt="Jenkins Git installation and Gradle tool section"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Git is essential for pulling source code, while Gradle is an
+                  example of another build tool Jenkins can manage globally.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 20</span>
+              <h2>Add Maven Installations</h2>
+              <p>
+                This screenshot shows Jenkins managing Maven versions such as
+                <code>Maven 3.9</code> and <code>Maven 3.9.14</code>, with
+                automatic installation from Apache. This makes it easier to
+                standardize the Maven version used by different jobs.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/23.%20maven%20installation.png"
+                  alt="Jenkins Maven installations with automatic installer settings"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Once Maven is registered here, jobs can reference it in build
+                  steps without hardcoding local paths.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 21</span>
+              <h2>See Other Tool Types Such as NodeJS</h2>
+              <p>
+                Jenkins supports more than Java-related tools. The NodeJS
+                section shows that the same idea applies to other ecosystems:
+                define the tool globally first, then let jobs use it later.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/24.%20nodejs.png"
+                  alt="Jenkins NodeJS installations section"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The pattern stays the same across ecosystems: configure once,
+                  reuse many times.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="tip-box">
+              If you want to add tools in Jenkins, the path is usually
+              <strong>Manage Jenkins → Tools</strong>. There you can add a JDK,
+              Maven, Git, NodeJS, and other supported tools, then choose those
+              named tools later inside each job.
+            </div>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

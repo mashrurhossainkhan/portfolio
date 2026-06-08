@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A beginner-friendly DevOps blog explaining what SonarQube is, what it checks, how quality gates work, and where it fits inside a Jenkins CI pipeline."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>What is SonarQube? | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      :root {
+        --ink: #203044;
+        --muted: #596575;
+        --line: #dce5ee;
+        --panel: #f7f9fc;
+        --accent: #176b8f;
+        --accent-2: #2f9b67;
+        --code-bg: #16202c;
+      }
+
+      .blog-header {
+        padding: 120px 0 68px;
+        background:
+          radial-gradient(circle at top left, rgba(23, 107, 143, 0.18), transparent 34%),
+          radial-gradient(circle at top right, rgba(47, 155, 103, 0.18), transparent 36%),
+          linear-gradient(180deg, #f8fbfd 0%, #edf3f8 100%);
+      }
+
+      .blog-badge {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(23, 107, 143, 0.1);
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .blog-header h1 {
+        font-size: 2.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--muted);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .hero-flow {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(23, 107, 143, 0.16);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 42px;
+        margin-bottom: 18px;
+        color: var(--ink);
+      }
+
+      .blog-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #434b57;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px 22px;
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .highlight-box {
+        background: #f7f9fc;
+        border-left: 4px solid var(--accent);
+      }
+
+      .tip-box {
+        background: #eef8f4;
+        border-left: 4px solid var(--accent-2);
+      }
+
+      .warning-box {
+        background: #fff7ea;
+        border-left: 4px solid #e88700;
+      }
+
+      .code-block {
+        background: var(--code-bg);
+        color: #f7fbff;
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 28px 0 14px;
+      }
+
+      .snapshot-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(18, 33, 53, 0.05);
+      }
+
+      .snapshot-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.02rem;
+      }
+
+      .lab-step {
+        margin-top: 44px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .step-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .blog-footer-nav {
+        margin-top: 52px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (max-width: 767px) {
+        .blog-header {
+          padding: 105px 0 56px;
+        }
+
+        .blog-header h1 {
+          font-size: 2.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <span class="blog-badge">Continuous Integration</span>
+            <h1>What is SonarQube?</h1>
+            <p>
+              While learning continuous integration with Jenkins, Git, Maven,
+              SonarQube, and Nexus, I learned how SonarQube acts as a quality
+              checkpoint before an artifact is released or deployed.
+            </p>
+            <div class="hero-flow">
+              Developer → GitHub → Jenkins → Maven Build → Unit Test →
+              SonarQube Analysis → Quality Gate → Nexus
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              A program can compile successfully and still contain hidden
+              problems. Tests can confirm that expected logic works, but they do
+              not always explain whether the code is clean, secure, duplicated,
+              or easy to maintain.
+            </p>
+
+            <div class="highlight-box">
+              <strong>In simple words:</strong> SonarQube checks whether code
+              is clean, secure, maintainable, and ready to move forward in the
+              CI pipeline.
+            </div>
+
+            <h2>What is SonarQube?</h2>
+            <p>
+              SonarQube is a static code analysis tool. It scans source code
+              and reports issues such as bugs, vulnerabilities, bad coding
+              practices, duplicated code, missing test coverage, and code
+              smells.
+            </p>
+
+            <p>
+              It does not build or deploy the application. Its main job is to
+              inspect the code and provide feedback before the final artifact is
+              accepted.
+            </p>
+
+            <h2>Why We Need SonarQube</h2>
+            <p>
+              Different CI tools answer different questions. The compiler,
+              tests, and SonarQube all help, but they are not checking the same
+              thing.
+            </p>
+
+            <div class="code-block">Compiler  → checks if code can run
+Unit Test → checks if logic works
+SonarQube → checks if code quality is good</div>
+
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Find problems early</h3>
+                <p>
+                  Issues are easier and cheaper to fix before the code reaches
+                  deployment or production.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Improve security</h3>
+                <p>
+                  SonarQube can highlight risky code patterns and security
+                  vulnerabilities during CI.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Keep code maintainable</h3>
+                <p>
+                  It helps teams notice duplication, complexity, and code smells
+                  that make future changes harder.
+                </p>
+              </div>
+            </div>
+
+            <h2>What SonarQube Checks</h2>
+
+            <div class="lab-step">
+              <span class="step-label">Check 1</span>
+              <h2>Bugs</h2>
+              <p>
+                SonarQube can detect possible mistakes in the code, such as
+                wrong conditions, null pointer risks, unreachable code, or logic
+                problems.
+              </p>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Check 2</span>
+              <h2>Vulnerabilities</h2>
+              <p>
+                It can find security-related issues such as hardcoded secrets,
+                SQL injection risks, unsafe patterns, or code that may expose
+                sensitive data.
+              </p>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Check 3</span>
+              <h2>Code Smells</h2>
+              <p>
+                Code smells are not always direct errors, but they make the
+                code harder to read, maintain, test, or scale in the future.
+              </p>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Check 4</span>
+              <h2>Duplicate Code and Test Coverage</h2>
+              <p>
+                SonarQube can detect repeated code blocks and show how much of
+                the codebase is covered by tests. Both signals help teams judge
+                maintainability and release confidence.
+              </p>
+            </div>
+
+            <h2>Simple Security Example</h2>
+            <p>
+              Suppose a developer writes a password directly in the source
+              code:
+            </p>
+
+            <div class="code-block">const password = "admin123";</div>
+
+            <p>
+              SonarQube may detect this as a security issue because sensitive
+              values should not be hardcoded inside the source code.
+            </p>
+
+            <h2>SonarQube in a CI Pipeline</h2>
+            <p>
+              In a continuous integration workflow, SonarQube usually runs
+              after the build and test stage. Jenkins can trigger the scan,
+              send the result to the SonarQube server, and then decide whether
+              the pipeline should continue.
+            </p>
+
+            <div class="highlight-box">
+              Developer → GitHub → Jenkins → Maven Build → Unit Test →
+              SonarQube Analysis → Quality Gate → Nexus
+            </div>
+
+            <h2>What is a Quality Gate?</h2>
+            <p>
+              A Quality Gate is a rule-based checkpoint in SonarQube. It
+              decides whether the code is good enough to continue in the
+              pipeline.
+            </p>
+
+            <p>Example Quality Gate rules can include:</p>
+            <ul>
+              <li>No critical vulnerability allowed.</li>
+              <li>No blocker bug allowed.</li>
+              <li>Code coverage must be above a required percentage.</li>
+              <li>Duplicated code must stay below a defined limit.</li>
+            </ul>
+
+            <div class="warning-box">
+              If the Quality Gate fails, Jenkins can stop the pipeline before
+              the artifact is published to Nexus or deployed further.
+            </div>
+
+            <h2>SonarQube Components</h2>
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>SonarQube Server</h3>
+                <p>
+                  The dashboard where teams review reports, bugs,
+                  vulnerabilities, graphs, and project quality status.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Sonar Scanner</h3>
+                <p>
+                  The tool used by Jenkins or another CI runner to scan the
+                  source code and send the analysis result to the server.
+                </p>
+              </div>
+            </div>
+
+            <h2>My Understanding</h2>
+            <p>
+              From this CI pipeline, I understood that Jenkins automates the
+              workflow, Maven builds and tests the code, SonarQube checks code
+              quality, and Nexus stores the final verified artifact.
+            </p>
+
+            <div class="tip-box">
+              SonarQube is important because it makes code quality visible
+              inside the delivery process. It helps teams catch problems early,
+              improve security, and keep the application easier to maintain.
+            </div>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>

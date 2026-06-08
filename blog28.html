@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Longest Substring Without Repeating Characters - Step by Step</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --soft: #1f2937;
+        --line: #334155;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent2: #22c55e;
+        --warn: #f59e0b;
+        --code: #0b1220;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #020617, #0f172a 25%, #111827 100%);
+        color: var(--text);
+        line-height: 1.65;
+      }
+
+      .container {
+        width: min(1100px, 92%);
+        margin: 0 auto;
+        padding: 32px 0 80px;
+      }
+
+      .hero {
+        padding: 28px;
+        background: rgba(17, 24, 39, 0.92);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.25;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 2.2rem;
+      }
+      h2 {
+        margin-top: 34px;
+        font-size: 1.55rem;
+        border-left: 5px solid var(--accent);
+        padding-left: 12px;
+      }
+      h3 {
+        margin-top: 26px;
+        color: #cbd5e1;
+      }
+
+      p,
+      li {
+        color: var(--text);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .pill {
+        display: inline-block;
+        margin-right: 8px;
+        margin-bottom: 10px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #082f49;
+        color: #bae6fd;
+        border: 1px solid #0ea5e9;
+        font-size: 0.92rem;
+      }
+
+      .card {
+        margin-top: 18px;
+        background: rgba(17, 24, 39, 0.95);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 22px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+      }
+
+      pre {
+        background: var(--code);
+        color: #dbeafe;
+        padding: 18px;
+        overflow: auto;
+        border-radius: 14px;
+        border: 1px solid #1e293b;
+        font-size: 0.95rem;
+      }
+
+      code {
+        font-family: Consolas, Monaco, monospace;
+      }
+
+      .note,
+      .tip,
+      .warning {
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin: 14px 0;
+        border: 1px solid transparent;
+      }
+
+      .note {
+        background: rgba(14, 165, 233, 0.1);
+        border-color: rgba(56, 189, 248, 0.35);
+      }
+
+      .tip {
+        background: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.35);
+      }
+
+      .warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.35);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        overflow: hidden;
+        border-radius: 14px;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #1e293b;
+      }
+
+      td {
+        background: #0f172a;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .flowchart {
+        width: 100%;
+        overflow-x: auto;
+        background: #0b1220;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 10px;
+      }
+
+      svg text {
+        font-family: Arial, Helvetica, sans-serif;
+        fill: #e5e7eb;
+        font-size: 14px;
+      }
+
+      .footer {
+        margin-top: 34px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .highlight {
+        color: #7dd3fc;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <section class="hero">
+        <span class="pill">LeetCode #3</span>
+        <span class="pill">Sliding Window</span>
+        <span class="pill">HashMap / Map</span>
+        <h1>Longest Substring Without Repeating Characters</h1>
+        <p class="muted">
+          A step-by-step blog explanation of the JavaScript solution using
+          <strong>sliding window</strong> and a <strong>Map</strong>.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>1. Problem in simple words</h2>
+        <p>
+          We are given a string <code>s</code>. We need to find the
+          <strong>length</strong> of the longest substring that contains
+          <strong>no repeated characters</strong>.
+        </p>
+        <div class="note">
+          <strong>Important:</strong> substring means characters must stay
+          <strong>continuous</strong>. For example, in <code>"pwwkew"</code>,
+          <code>"wke"</code> is a substring, but <code>"pwke"</code> is not,
+          because it skips characters.
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <h2>2. Example</h2>
+          <p><code>s = "abcabcbb"</code></p>
+          <p>Answer = <strong>3</strong></p>
+          <p>Because the longest valid substring can be <code>"abc"</code>.</p>
+        </div>
+        <div class="card">
+          <h2>3. Brute force idea</h2>
+          <p>
+            Try every possible substring, check whether it has duplicates, and
+            keep the maximum length.
+          </p>
+          <p>This works, but it is slow.</p>
+          <div class="warning">
+            For interviews, brute force is usually not the best final answer
+            here.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Best idea: Sliding Window</h2>
+        <p>
+          We keep a window of characters that is always valid, meaning
+          <strong>no duplicates</strong> inside it.
+        </p>
+        <ul>
+          <li><strong>left</strong> = starting index of the current window</li>
+          <li><strong>right</strong> = ending index of the current window</li>
+          <li>We move <strong>right</strong> one step at a time</li>
+          <li>If a duplicate appears, we move <strong>left</strong> forward</li>
+        </ul>
+        <div class="tip">
+          Think of it like a moving rectangle over the string. The rectangle
+          expands to the right, and when it becomes invalid, we shrink it from
+          the left.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. Why do we need a Map?</h2>
+        <p>
+          The <code>Map</code> stores the <strong>last index</strong> where each
+          character was seen.
+        </p>
+        <pre><code>lastSeen.set(char, index)</code></pre>
+        <p>Example:</p>
+        <pre><code>For "abc":
+a -&gt; 0
+b -&gt; 1
+c -&gt; 2</code></pre>
+        <p>
+          This helps us jump <code>left</code> directly to the correct position
+          when we see a duplicate.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>6. Final code</h2>
+        <pre><code>/**
+ * @param {string} s
+ * @return {number}
+ */
+var lengthOfLongestSubstring = function (s) {
+  const lastSeen = new Map();
+  let left = 0;
+  let maxLength = 0;
+
+  for (let right = 0; right &lt; s.length; right++) {
+    const char = s[right];
+
+    if (lastSeen.has(char) &amp;&amp; lastSeen.get(char) &gt;= left) {
+      left = lastSeen.get(char) + 1;
+    }
+
+    lastSeen.set(char, right);
+    maxLength = Math.max(maxLength, right - left + 1);
+  }
+
+  return maxLength;
+};</code></pre>
+      </section>
+
+      <section class="card">
+        <h2>7. Step-by-step explanation of every line</h2>
+
+        <h3><code>const lastSeen = new Map();</code></h3>
+        <p>This stores each character and the last position where we saw it.</p>
+
+        <h3><code>let left = 0;</code></h3>
+        <p>This is the start of the current window.</p>
+
+        <h3><code>let maxLength = 0;</code></h3>
+        <p>This stores the best answer found so far.</p>
+
+        <h3><code>for (let right = 0; right &lt; s.length; right++)</code></h3>
+        <p>
+          We move through the string one character at a time using
+          <code>right</code>.
+        </p>
+
+        <h3><code>const char = s[right];</code></h3>
+        <p>Current character at the <code>right</code> pointer.</p>
+
+        <h3>
+          <code
+            >if (lastSeen.has(char) &amp;&amp; lastSeen.get(char) &gt;=
+            left)</code
+          >
+        </h3>
+        <p>
+          This checks whether the current character was already seen
+          <strong>inside the current window</strong>.
+        </p>
+        <div class="note">
+          The <code>&gt;= left</code> part is very important. It makes sure we
+          only care about duplicates that are still inside the current window.
+        </div>
+
+        <h3><code>left = lastSeen.get(char) + 1;</code></h3>
+        <p>
+          If duplicate exists in the current window, move the left pointer to
+          one position after that duplicate.
+        </p>
+
+        <h3><code>lastSeen.set(char, right);</code></h3>
+        <p>Update the latest index of the current character.</p>
+
+        <h3><code>maxLength = Math.max(maxLength, right - left + 1);</code></h3>
+        <p>
+          The current window length is <code>right - left + 1</code>. Compare it
+          with the best answer.
+        </p>
+
+        <h3><code>return maxLength;</code></h3>
+        <p>Return the final answer.</p>
+      </section>
+
+      <section class="card">
+        <h2>8. Dry run with <code>"pwwkew"</code></h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>right</th>
+              <th>char</th>
+              <th>left after update</th>
+              <th>Window</th>
+              <th>maxLength</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>0</td>
+              <td>p</td>
+              <td>0</td>
+              <td>"p"</td>
+              <td>1</td>
+              <td>First char, no duplicate</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>1</td>
+              <td>w</td>
+              <td>0</td>
+              <td>"pw"</td>
+              <td>2</td>
+              <td>No duplicate</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>2</td>
+              <td>w</td>
+              <td>2</td>
+              <td>"w"</td>
+              <td>2</td>
+              <td>Duplicate 'w' found, move left</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>3</td>
+              <td>k</td>
+              <td>2</td>
+              <td>"wk"</td>
+              <td>2</td>
+              <td>No duplicate</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>4</td>
+              <td>e</td>
+              <td>2</td>
+              <td>"wke"</td>
+              <td>3</td>
+              <td>Best window so far</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>5</td>
+              <td>w</td>
+              <td>3</td>
+              <td>"kew"</td>
+              <td>3</td>
+              <td>Duplicate 'w' again, move left</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="tip">
+          Final answer: <strong>3</strong>, because the longest substring
+          without repeating characters is <code>"wke"</code> or
+          <code>"kew"</code>.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>9. Visual intuition</h2>
+        <p>
+          At every step, our window is the substring from <code>left</code> to
+          <code>right</code>.
+        </p>
+        <pre><code>String:  p  w  w  k  e  w
+Index :  0  1  2  3  4  5
+
+Step 1: [p]
+Step 2: [p w]
+Step 3: duplicate w, so move left -> [w]
+Step 4: [w k]
+Step 5: [w k e]
+Step 6: duplicate w, move left -> [k e w]</code></pre>
+      </section>
+
+      <section class="card">
+        <h2>10. Flowchart</h2>
+        <div class="flowchart">
+          <svg
+            viewBox="0 0 1000 700"
+            width="100%"
+            height="700"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <marker
+                id="arrow"
+                markerWidth="10"
+                markerHeight="10"
+                refX="9"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L0,6 L9,3 z" fill="#38bdf8" />
+              </marker>
+            </defs>
+
+            <rect
+              x="360"
+              y="20"
+              width="280"
+              height="60"
+              rx="14"
+              fill="#1e293b"
+              stroke="#38bdf8"
+            />
+            <text x="500" y="57" text-anchor="middle">Start</text>
+
+            <line
+              x1="500"
+              y1="80"
+              x2="500"
+              y2="120"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+
+            <rect
+              x="290"
+              y="120"
+              width="420"
+              height="80"
+              rx="14"
+              fill="#1e293b"
+              stroke="#38bdf8"
+            />
+            <text x="500" y="155" text-anchor="middle">Initialize:</text>
+            <text x="500" y="180" text-anchor="middle">
+              lastSeen = Map, left = 0, maxLength = 0
+            </text>
+
+            <line
+              x1="500"
+              y1="200"
+              x2="500"
+              y2="245"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+
+            <polygon
+              points="500,245 675,315 500,385 325,315"
+              fill="#1f2937"
+              stroke="#22c55e"
+              stroke-width="2"
+            />
+            <text x="500" y="312" text-anchor="middle">
+              For each right from 0 to s.length - 1
+            </text>
+
+            <line
+              x1="500"
+              y1="385"
+              x2="500"
+              y2="430"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+
+            <rect
+              x="305"
+              y="430"
+              width="390"
+              height="60"
+              rx="14"
+              fill="#1e293b"
+              stroke="#38bdf8"
+            />
+            <text x="500" y="468" text-anchor="middle">char = s[right]</text>
+
+            <line
+              x1="500"
+              y1="490"
+              x2="500"
+              y2="535"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+
+            <polygon
+              points="500,535 710,605 500,675 290,605"
+              fill="#1f2937"
+              stroke="#f59e0b"
+              stroke-width="2"
+            />
+            <text x="500" y="600" text-anchor="middle">
+              Duplicate in current window?
+            </text>
+            <text x="500" y="620" text-anchor="middle">
+              lastSeen.has(char) &amp;&amp; lastSeen.get(char) &gt;= left
+            </text>
+
+            <line
+              x1="710"
+              y1="605"
+              x2="860"
+              y2="605"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+            <text x="785" y="590" text-anchor="middle">Yes</text>
+            <rect
+              x="860"
+              y="565"
+              width="120"
+              height="80"
+              rx="14"
+              fill="#1e293b"
+              stroke="#38bdf8"
+            />
+            <text x="920" y="600" text-anchor="middle">left =</text>
+            <text x="920" y="622" text-anchor="middle">
+              lastSeen.get(char)+1
+            </text>
+
+            <line
+              x1="500"
+              y1="675"
+              x2="500"
+              y2="720"
+              stroke="#38bdf8"
+              stroke-width="3"
+              marker-end="url(#arrow)"
+            />
+            <text x="535" y="700">No / continue</text>
+          </svg>
+        </div>
+        <div class="note">
+          After checking duplicate or moving <code>left</code>, we still do two
+          things: <strong>update the map</strong> and
+          <strong>update maxLength</strong>.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>11. Why <code>lastSeen.get(char) &gt;= left</code> matters</h2>
+        <p>Suppose the string is <code>"abba"</code>.</p>
+        <p>
+          When we are at the last <code>'a'</code>, the old
+          <code>'a'</code> might be outside the current window. We should only
+          move <code>left</code> if that repeated character is still inside the
+          current window.
+        </p>
+        <div class="warning">
+          Without <code>&gt;= left</code>, we might move
+          <code>left</code> backward by mistake, which breaks the logic.
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>12. Time and space complexity</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Complexity</th>
+              <th>Value</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Time</td>
+              <td><strong>O(n)</strong></td>
+              <td>Each character is processed in one pass</td>
+            </tr>
+            <tr>
+              <td>Space</td>
+              <td><strong>O(k)</strong></td>
+              <td>Map stores characters seen in the string</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>13. Interview explanation you can say</h2>
+        <pre><code>I use a sliding window and a hashmap.
+The window keeps a substring with no repeated characters.
+I move the right pointer through the string.
+If I see a duplicate character inside the current window,
+I move the left pointer to one index after the previous occurrence.
+The hashmap stores the last seen index of each character,
+so I can update left in O(1) time.
+At each step, I update the maximum window length.
+This gives O(n) time complexity.</code></pre>
+      </section>
+
+      <section class="card">
+        <h2>14. Final takeaway</h2>
+        <p>
+          The main trick is not removing characters one by one manually.
+          Instead, use the <span class="highlight">last seen index</span> to
+          jump the <code>left</code> pointer directly.
+        </p>
+        <div class="tip">
+          This problem is one of the most important sliding window interview
+          questions. If you understand this deeply, many similar problems become
+          easier.
+        </div>
+      </section>
+
+      <p class="footer">
+        Built as a blog-style explanation for practicing DSA and interview
+        preparation.
+      </p>
+    </div>
+  </body>
+</html>

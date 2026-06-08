@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="A Jenkins CI/CD learning blog covering plugins, environment variables, parameterized builds, timestamp variables, and versioned WAR artifacts."
+    />
+    <meta name="author" content="Mashrur Hossain Khan" />
+
+    <title>Jenkins Plugins, Variables, and Artifact Versioning | Mashrur Hossain Khan</title>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/unicons.css" />
+    <link rel="stylesheet" href="css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="css/owl.theme.default.min.css" />
+    <link rel="stylesheet" href="css/tooplate-style.css" />
+
+    <style>
+      :root {
+        --ink: #213044;
+        --muted: #596575;
+        --line: #dce5ee;
+        --panel: #f7f9fc;
+        --accent: #176b8f;
+        --accent-2: #c77800;
+        --code-bg: #16202c;
+      }
+
+      .blog-header {
+        padding: 120px 0 68px;
+        background:
+          radial-gradient(circle at top left, rgba(23, 107, 143, 0.18), transparent 34%),
+          radial-gradient(circle at top right, rgba(199, 120, 0, 0.18), transparent 36%),
+          linear-gradient(180deg, #f8fbfd 0%, #edf3f8 100%);
+      }
+
+      .blog-badge {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(23, 107, 143, 0.1);
+        color: var(--accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .blog-header h1 {
+        font-size: 2.9rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink);
+        margin-bottom: 20px;
+      }
+
+      .blog-header p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: var(--muted);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .hero-flow {
+        margin-top: 28px;
+        padding: 18px 22px;
+        border-radius: 14px;
+        border: 1px solid rgba(23, 107, 143, 0.16);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .blog-content {
+        padding: 70px 0;
+      }
+
+      .blog-content h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 42px;
+        margin-bottom: 18px;
+        color: var(--ink);
+      }
+
+      .blog-content h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 30px;
+        margin-bottom: 12px;
+        color: var(--ink);
+      }
+
+      .blog-content p,
+      .blog-content li {
+        font-size: 1rem;
+        line-height: 1.9;
+        color: #434b57;
+      }
+
+      .blog-content ul {
+        padding-left: 20px;
+      }
+
+      .highlight-box,
+      .tip-box,
+      .warning-box {
+        padding: 20px 22px;
+        border-radius: 12px;
+        margin: 24px 0;
+      }
+
+      .highlight-box {
+        background: #f7f9fc;
+        border-left: 4px solid var(--accent);
+      }
+
+      .tip-box {
+        background: #eef8f4;
+        border-left: 4px solid #2f9b67;
+      }
+
+      .warning-box {
+        background: #fff7ea;
+        border-left: 4px solid var(--accent-2);
+      }
+
+      .code-block {
+        background: var(--code-bg);
+        color: #f7fbff;
+        padding: 18px 20px;
+        border-radius: 12px;
+        font-family: monospace;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        overflow-x: auto;
+        margin: 22px 0;
+        white-space: pre-wrap;
+      }
+
+      .snapshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin: 28px 0 14px;
+      }
+
+      .snapshot-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 28px rgba(18, 33, 53, 0.05);
+      }
+
+      .snapshot-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.02rem;
+      }
+
+      .lab-step {
+        margin-top: 44px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .step-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: var(--accent);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      figure.lab-shot {
+        margin: 26px 0;
+      }
+
+      .lab-shot img {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        box-shadow: 0 20px 40px rgba(19, 31, 48, 0.08);
+      }
+
+      .lab-shot figcaption {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .blog-footer-nav {
+        margin-top: 52px;
+      }
+
+      .blog-footer-nav a {
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      @media (max-width: 767px) {
+        .blog-header {
+          padding: 105px 0 56px;
+        }
+
+        .blog-header h1 {
+          font-size: 2.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-light">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="uil uil-user"></i> Mashrur
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+              <a href="index.html#about" class="nav-link"><span>About</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#project" class="nav-link"
+                ><span>Projects</span></a
+              >
+            </li>
+            <li class="nav-item">
+              <a href="index.html#blogs" class="nav-link"><span>Blogs</span></a>
+            </li>
+            <li class="nav-item">
+              <a href="index.html#contact" class="nav-link"
+                ><span>Contact</span></a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <section class="blog-header text-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <span class="blog-badge">Jenkins Plugins and Versioning</span>
+            <h1>Jenkins Plugins, Variables, and Artifact Versioning</h1>
+            <p>
+              In this Jenkins lab, I practiced how plugins extend Jenkins, how
+              build variables make jobs dynamic, and how versioned artifacts
+              make each build easier to trace, deploy, and roll back.
+            </p>
+            <div class="hero-flow">
+              Plugins → Environment Variables → Parameterized Builds →
+              Timestamp Values → Versioned WAR Artifacts
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-content">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 mx-auto">
+            <p>
+              This practice started with a simple problem: a Maven build
+              creates the same WAR file name each time. That works for a basic
+              build, but it is not enough when every CI/CD run needs a clear
+              artifact that can be identified later.
+            </p>
+
+            <p>
+              The goal was to keep the Jenkins job simple while making the
+              output more useful. Instead of only building
+              <code>target/vprofile-v2.war</code>, the job copies that file into
+              a <code>versions</code> folder with a unique name.
+            </p>
+
+            <div class="highlight-box">
+              <strong>Main lesson:</strong> a Jenkins build should not only
+              produce an artifact. It should produce an artifact with enough
+              identity to support deployment, rollback, debugging, and release
+              management.
+            </div>
+
+            <h2>What I Practiced</h2>
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>Plugin manager</h3>
+                <p>
+                  I reviewed where Jenkins plugins are installed, updated, and
+                  managed from the Jenkins dashboard.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>S3 publisher</h3>
+                <p>
+                  I looked at how an S3 plugin can extend Jenkins so build
+                  artifacts can be published outside the local workspace.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Build variables</h3>
+                <p>
+                  I used Jenkins variables such as <code>$BUILD_ID</code>,
+                  <code>$VERSION</code>, and <code>$BUILD_TIMESTAMP</code>.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Versioned artifacts</h3>
+                <p>
+                  I copied the generated WAR file into a separate folder using
+                  a name that changes on each build.
+                </p>
+              </div>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 1</span>
+              <h2>Open the Jenkins Plugin Manager</h2>
+              <p>
+                Jenkins plugins are extensions that add features to Jenkins.
+                The plugin manager is available from
+                <code>Dashboard &gt; Manage Jenkins &gt; Plugins</code>. From
+                there, Jenkins shows available updates, available plugins,
+                installed plugins, and advanced settings.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/1.%20install%20plugins.png"
+                  alt="Jenkins plugin manager page showing plugin installation options"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The plugin manager is where Jenkins gains extra capabilities
+                  without changing the core Jenkins installation manually.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 2</span>
+              <h2>Review the S3 Publisher Plugin</h2>
+              <p>
+                One example plugin is an S3 publisher plugin. In a real CI/CD
+                workflow, Jenkins should not treat the workspace as permanent
+                artifact storage. A plugin can help move build outputs to a
+                better storage location such as AWS S3.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/2.%20s3%20publisher%20plugin.png"
+                  alt="Jenkins S3 publisher plugin search result"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Plugins connect Jenkins to other systems, such as cloud
+                  storage, repositories, notification tools, or deployment
+                  platforms.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 3</span>
+              <h2>Copy the Previous Jenkins Project</h2>
+              <p>
+                To keep the lab focused, I copied the existing Maven Jenkins
+                project instead of creating every setting again from zero. That
+                made it easier to concentrate on artifact naming and plugin
+                behavior.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/3.%20copy%20the%20prev%20proj.png"
+                  alt="Jenkins screen for copying an existing project"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Copying an existing job is useful when the source code and
+                  build tool setup are already correct.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 4</span>
+              <h2>Use BUILD_ID for Automatic Versioning</h2>
+              <p>
+                Jenkins provides built-in environment variables. One useful
+                variable is <code>$BUILD_ID</code>, which changes from build to
+                build. I used it to create a WAR file name that does not
+                overwrite the previous output.
+              </p>
+
+              <div class="code-block">mvn install
+mkdir -p versions
+cp target/vprofile-v2.war versions/vpro-$BUILD_ID.war</div>
+
+              <p>
+                The <code>mkdir -p</code> command creates the
+                <code>versions</code> directory if it does not already exist.
+                The final command copies the Maven WAR output into that folder
+                with a build-specific file name.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/4.%20change%20build%20step%20accordingly.png"
+                  alt="Jenkins build step using BUILD_ID to copy a versioned WAR file"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Using <code>$BUILD_ID</code> gives every Jenkins run a
+                  simple automatic artifact name, such as
+                  <code>vpro-1.war</code> or <code>vpro-2.war</code>.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 5</span>
+              <h2>Install the Build Timestamp Plugin</h2>
+              <p>
+                Another option is timestamp-based versioning. After installing
+                the Build Timestamp plugin, Jenkins can expose a timestamp
+                value through <code>$BUILD_TIMESTAMP</code>. This is useful
+                when the artifact name should show when the build happened.
+              </p>
+
+              <div class="code-block">mvn install
+mkdir -p versions
+cp target/vprofile-v2.war versions/vpro-$BUILD_TIMESTAMP.war</div>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/5.%20build%20timestamp%20plugin.png"
+                  alt="Jenkins Build Timestamp plugin screen"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Timestamp naming can produce artifacts such as
+                  <code>vpro-080526_1030.war</code>, depending on the timestamp
+                  format configured in Jenkins.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 6</span>
+              <h2>Enable Timestamp Variables in System Settings</h2>
+              <p>
+                After installing a plugin, Jenkins may need extra configuration
+                before the new variable is available in a job. For the
+                timestamp plugin, the related settings are enabled from Jenkins
+                system configuration.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/6.%20enable%20it%20from%20system.png"
+                  alt="Jenkins system configuration for enabling build timestamp variables"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Plugin installation and plugin configuration are separate
+                  steps. Installing the plugin gives Jenkins the feature;
+                  configuration makes it usable in the job.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 7</span>
+              <h2>Create a Manual VERSION Parameter</h2>
+              <p>
+                Jenkins also supports parameterized builds. I enabled
+                <code>This project is parameterized</code> and added a string
+                parameter named <code>VERSION</code>. This lets me enter a
+                version number before starting the build.
+              </p>
+
+              <div class="code-block">mvn install
+mkdir -p versions
+cp target/vprofile-v2.war versions/vpro-$VERSION.war</div>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/8.%20enable%20parameteriesed.png"
+                  alt="Jenkins parameterized build setting with a VERSION string parameter"
+                  loading="lazy"
+                />
+                <figcaption>
+                  A manual version parameter is useful when the release number
+                  should come from the person running the build.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 8</span>
+              <h2>Build with a Custom Version</h2>
+              <p>
+                After the parameter is enabled, Jenkins asks for the version
+                value before running the job. For example, entering
+                <code>2.3.6</code> creates an artifact named
+                <code>vpro-2.3.6.war</code>.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/7.%20build%20with%20parameter.png"
+                  alt="Jenkins build with parameters screen for entering a version value"
+                  loading="lazy"
+                />
+                <figcaption>
+                  Parameterized builds make the same Jenkins job reusable for
+                  different release numbers.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="lab-step">
+              <span class="step-label">Step 9</span>
+              <h2>Confirm the Versioned WAR File</h2>
+              <p>
+                The final check is to inspect the workspace and confirm the WAR
+                file exists in the <code>versions</code> folder. This proves
+                that Jenkins did more than run Maven: it created a traceable
+                build output.
+              </p>
+
+              <figure class="lab-shot">
+                <img
+                  src="images/CICD/plugin%2C%20versioning/9.%20find%20war%20file.png"
+                  alt="Jenkins workspace showing the generated versioned WAR file"
+                  loading="lazy"
+                />
+                <figcaption>
+                  The versioned WAR file is the practical result of combining
+                  Jenkins variables, shell commands, and artifact management.
+                </figcaption>
+              </figure>
+            </div>
+
+            <h2>Where Artifacts Should Go Next</h2>
+            <p>
+              The Jenkins workspace is not the final place to store production
+              artifacts. It is useful during the build, but real release assets
+              should be stored somewhere durable and searchable.
+            </p>
+
+            <div class="snapshot-grid">
+              <div class="snapshot-card">
+                <h3>AWS S3</h3>
+                <p>
+                  A simple object storage option for storing versioned build
+                  files and deployment packages.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>Nexus Repository</h3>
+                <p>
+                  A repository manager commonly used to store build artifacts,
+                  packages, and dependency assets.
+                </p>
+              </div>
+              <div class="snapshot-card">
+                <h3>JFrog Artifactory</h3>
+                <p>
+                  A dedicated artifact platform for managing binary releases
+                  and deployment-ready outputs.
+                </p>
+              </div>
+            </div>
+
+            <div class="tip-box">
+              My main takeaway from this lab is that artifact versioning is a
+              small shell-script change with a big CI/CD impact. It turns a
+              basic build output into something that can be tracked, compared,
+              deployed, and rolled back.
+            </div>
+
+            <div class="blog-footer-nav">
+              <a href="index.html#blogs">← Back to Blogs</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12 mx-lg-auto col-md-12 col-12 text-center">
+            <p class="copyright-text">
+              Copyright &copy; 2026 Mashrur Hossain Khan. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Headroom.js"></script>
+    <script src="js/jQuery.headroom.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/custom.js"></script>
+  </body>
+</html>
